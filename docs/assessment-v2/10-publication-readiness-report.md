@@ -50,7 +50,7 @@ Nothing below has been tested in production. All code paths have been exercised 
 |---|---|---|---|
 | C1 | Supabase production project | Migrations applied, including `20260927000100`; RLS enabled; service-role key only in server environment variables; backups enabled | **Outstanding** |
 | C2 | Authentication email (SMTP) | Verification and password-reset emails delivered from the production domain | **Outstanding** |
-| C3 | Anthropic API | Server-side key and model; one real report generated and validated | **Outstanding** |
+| C3 | Anthropic API | Server-side key and model; one real report generated and validated | **Partly done.** A live AI report (`claude-opus-5`) was generated end to end on a local database on September 26, 2026, with the PDF. It found two checker false alarms and one wording error, all fixed. **Still needed:** a new key (the test key was shared in chat and must be revoked) configured in production, and one production report |
 | C4 | Stripe live mode | Live keys, webhook secret and prices; one real checkout, renewal and cancellation | **Outstanding** |
 | C5 | Application secrets | `ROHA_TOKEN_SECRET`, `CRON_SECRET`, `ROHA_PLATFORM_ADMIN_EMAILS` | **Outstanding** |
 | C6 | Deployment | App deployed; `NEXT_PUBLIC_APP_URL` set; retention cron running; error log reviewed | **Outstanding** |

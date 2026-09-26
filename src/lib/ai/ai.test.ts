@@ -77,10 +77,13 @@ describe("numeric consistency validator", () => {
     expect(warnings.map((w) => w.value)).toEqual(expect.arrayContaining(["137.9", "412"]));
   });
 
-  it("ignores day ranges in action-plan timeframes", () => {
+  it("ignores day ranges and proposed targets in the action plan", () => {
     const snap = makeSnapshot();
     const report = generateRulesReport(snap);
-    const ok: ExecutiveReport = { ...report, action_plan: report.action_plan.map((a) => ({ ...a, timeframe: "Days 31-60" })) };
+    const ok: ExecutiveReport = {
+      ...report,
+      action_plan: report.action_plan.map((a) => ({ ...a, timeframe: "Days 31-60", success_metric: "At least 10 ideas logged with a decision" })),
+    };
     expect(findUnsupportedNumbers(ok, snap)).toEqual([]);
   });
 
