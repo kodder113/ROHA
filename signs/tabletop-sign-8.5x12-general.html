@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Rodrik Consulting Tabletop Sign</title>
+<link href="fonts/inter.css" rel="stylesheet">
+<style>
+  @page { size: 8.5in 12in; margin: 0; }
+  :root{ --blue:#006BB6; --blue-lt:#3d9be0; --orange:#F58426; --ink:#EEF2F6; --muted:#A7B2BF; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ width:8.5in; height:12in; }
+  body{ font-family:Inter, "Liberation Sans", Arial, sans-serif; color:var(--ink); -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sign{ position:relative; width:8.5in; height:12in; overflow:hidden; display:flex; flex-direction:column; align-items:center; text-align:center;
+    padding:0.5in 0.6in 0.45in;
+    background:
+      radial-gradient(circle at 12% 6%, rgba(0,107,182,.38), transparent 34%),
+      radial-gradient(circle at 92% 58%, rgba(245,132,38,.16), transparent 32%),
+      radial-gradient(circle at 10% 96%, rgba(0,107,182,.22), transparent 30%),
+      linear-gradient(180deg, #05080d 0%, #081221 55%, #04070b 100%); }
+  .sign::before{ content:""; position:absolute; left:0; right:0; top:0; height:0.14in; background:linear-gradient(90deg, var(--blue), var(--orange)); }
+
+  .logo{ display:block; height:1.2in; width:auto; margin:-0.12in 0 0.14in; filter:drop-shadow(0 0 18px rgba(0,107,182,.45)); }
+  .brand{ font-weight:900; font-size:30pt; letter-spacing:.14em; line-height:1; }
+  .brand span{ color:var(--orange); }
+  .tagline{ margin-top:0.1in; font-size:11pt; font-weight:600; letter-spacing:.28em; text-transform:uppercase; color:var(--muted); }
+
+  .kicker{ margin-top:0.26in; display:inline-block; padding:0.07in 0.24in; border-radius:999px; border:2px solid var(--orange);
+    color:var(--orange); font-weight:800; font-size:14pt; letter-spacing:.16em; text-transform:uppercase; background:rgba(245,132,38,.08); }
+  h1{ margin-top:0.42in; font-weight:800; font-size:36pt; line-height:1.06; letter-spacing:-.02em; max-width:6.9in; }
+  h1 em{ font-style:normal; color:var(--blue-lt); }
+
+  .qr-card{ margin-top:0.3in; background:#fff; border-radius:0.28in; padding:0.36in; box-shadow:0 0 0 5px var(--orange), 0 18px 50px rgba(0,0,0,.55); }
+  .qr{ display:block; width:3.4in; height:3.4in; }
+  .scan{ margin-top:0.24in; font-weight:800; font-size:25pt; letter-spacing:-.01em; }
+  .scan-sub{ margin-top:0.08in; font-size:13.5pt; color:var(--muted); font-weight:500; }
+  .scan-sub b{ color:var(--ink); font-weight:700; }
+
+  .help{ margin-top:0.22in; display:grid; grid-template-columns:1fr 1fr; gap:0.12in 0.18in; width:6.8in; }
+  .help div{ display:flex; align-items:center; gap:0.12in; padding:0.12in 0.18in; border:1.5px solid rgba(255,255,255,.16); border-radius:0.14in;
+    background:rgba(255,255,255,.04); font-size:13pt; font-weight:600; text-align:left; }
+  .help i{ flex:0 0 auto; width:0.13in; height:0.13in; border-radius:50%; background:var(--orange); }
+
+  .foot{ margin-top:auto; width:100%; padding-top:0.22in; border-top:1.5px solid rgba(255,255,255,.14); display:flex; justify-content:space-between; align-items:flex-end; text-align:left; }
+  .who b{ display:block; font-size:14pt; font-weight:800; }
+  .who span{ display:block; margin-top:0.04in; font-size:10.5pt; color:var(--muted); }
+  .url{ font-size:14pt; font-weight:800; color:var(--orange); letter-spacing:.01em; }
+</style></head>
+<body>
+  <div class="sign">
+    <img class="logo" src="logo.png" alt="Rodrik Consulting logo">
+    <div class="brand">RODRIK <span>CONSULTING</span></div>
+    <div class="tagline">Leadership · Analytics · Ethics · Impact</div>
+
+    <h1>Put <em>AI and technology</em> to work for your business</h1>
+
+    <div class="qr-card"><svg class="qr" shape-rendering="crispEdges" viewBox="0 0 37 37" class="segno"><path class="qrline" stroke="#0b1220" d="M0 0.5h7m3 0h5m6 0h1m3 0h1m1 0h2m1 0h7m-37 1h1m5 0h1m2 0h1m1 0h1m1 0h2m1 0h1m2 0h6m1 0h1m1 0h1m1 0h1m5 0h1m-37 1h1m1 0h3m1 0h1m1 0h3m3 0h1m2 0h2m2 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m-37 1h1m1 0h3m1 0h1m6 0h1m1 0h1m2 0h2m5 0h1m1 0h2m1 0h1m1 0h3m1 0h1m-37 1h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h5m1 0h3m3 0h1m2 0h1m1 0h3m1 0h1m-37 1h1m5 0h1m1 0h1m2 0h2m4 0h6m1 0h1m3 0h1m1 0h1m5 0h1m-37 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-28 1h1m1 0h2m4 0h2m1 0h3m2 0h1m-25 1h1m2 0h1m1 0h1m1 0h1m2 0h1m1 0h1m4 0h1m2 0h2m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m-35 1h3m1 0h1m3 0h4m2 0h1m5 0h2m1 0h1m2 0h1m2 0h1m2 0h2m-33 1h3m2 0h1m2 0h1m5 0h1m1 0h5m1 0h7m1 0h1m2 0h1m-34 1h1m7 0h1m1 0h2m2 0h1m5 0h3m2 0h4m1 0h1m2 0h1m1 0h1m-34 1h1m2 0h1m1 0h1m3 0h3m2 0h2m1 0h5m4 0h2m2 0h2m1 0h1m-37 1h4m1 0h1m1 0h2m2 0h2m1 0h1m3 0h3m2 0h3m1 0h3m1 0h2m1 0h2m-35 1h1m1 0h5m1 0h2m2 0h2m1 0h1m2 0h6m1 0h4m1 0h4m-35 1h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h2m2 0h1m3 0h2m2 0h1m1 0h1m1 0h1m1 0h3m1 0h2m-36 1h9m1 0h2m1 0h1m1 0h2m1 0h2m8 0h4m1 0h4m-36 1h4m6 0h4m1 0h4m2 0h1m1 0h1m1 0h3m3 0h1m-33 1h2m2 0h3m2 0h3m3 0h1m2 0h3m1 0h3m1 0h3m1 0h4m-33 1h1m3 0h1m5 0h2m3 0h3m1 0h4m2 0h1m3 0h1m1 0h1m1 0h1m1 0h1m-37 1h1m2 0h2m1 0h1m2 0h1m1 0h3m5 0h1m1 0h2m1 0h1m2 0h1m1 0h2m3 0h1m1 0h1m-37 1h1m1 0h1m1 0h2m1 0h2m1 0h2m1 0h2m1 0h1m2 0h2m2 0h1m1 0h1m1 0h1m1 0h1m2 0h3m-33 1h2m1 0h2m2 0h5m4 0h1m4 0h2m2 0h3m-30 1h1m4 0h1m4 0h2m2 0h3m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h2m2 0h3m-36 1h1m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1m2 0h2m3 0h1m2 0h4m1 0h3m2 0h1m1 0h1m-37 1h2m1 0h3m1 0h1m1 0h4m3 0h2m2 0h1m2 0h1m1 0h1m3 0h1m2 0h1m-31 1h1m1 0h1m1 0h2m1 0h2m1 0h2m3 0h5m1 0h1m1 0h5m1 0h1m2 0h1m-33 1h1m4 0h5m4 0h3m2 0h1m1 0h2m1 0h2m2 0h2m2 0h3m-37 1h3m3 0h2m3 0h1m1 0h2m2 0h1m1 0h1m1 0h1m6 0h8m-28 1h2m1 0h2m1 0h3m2 0h1m1 0h1m1 0h1m3 0h2m3 0h2m-34 1h7m4 0h4m1 0h2m1 0h2m2 0h2m1 0h1m1 0h1m1 0h1m1 0h3m-35 1h1m5 0h1m2 0h3m2 0h3m2 0h2m1 0h1m1 0h1m3 0h1m3 0h1m1 0h1m1 0h1m-37 1h1m1 0h3m1 0h1m1 0h1m2 0h8m3 0h1m1 0h1m3 0h8m-36 1h1m1 0h3m1 0h1m2 0h2m2 0h2m1 0h1m1 0h3m4 0h1m1 0h2m1 0h2m2 0h2m-36 1h1m1 0h3m1 0h1m2 0h2m3 0h2m4 0h1m1 0h1m3 0h3m1 0h1m3 0h2m-36 1h1m5 0h1m1 0h1m3 0h1m8 0h1m2 0h1m2 0h1m2 0h2m2 0h2m-36 1h7m3 0h2m4 0h4m1 0h4m2 0h1m1 0h1m4 0h3"/></svg></div>
+    <div class="scan">Scan to request a consultation</div>
+    <div class="scan-sub">Takes under a minute. Just your <b>name</b>, <b>email</b> &amp; <b>company</b>.</div>
+
+    <div class="help">
+      <div><i></i>AI strategy &amp; adoption</div>
+      <div><i></i>Automation &amp; workflows</div>
+      <div><i></i>Data &amp; dashboards</div>
+      <div><i></i>Websites, apps &amp; digital tools</div>
+    </div>
+
+    <div class="foot">
+      <div class="who"><b>Dr. Oscar A. Rodriguez, DSL</b><span>20+ years in data, AI &amp; leadership · Citigroup · TD Bank · Liberty Mutual</span></div>
+      <div class="url">rodrikconsulting.com</div>
+    </div>
+  </div>
+</body></html>
