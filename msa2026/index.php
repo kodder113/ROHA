@@ -8,17 +8,22 @@
 /* ===== Settings: fill these in before the event ===== */
 // Where new-lead alerts go.
 const MSA_NOTIFY_TO = 'oscar@rodrikconsulting.com';
-// Mailbox the emails come from. Visitors see this as the sender and replies come back to it.
+// Mailbox the lead alerts are sent from, and its password (the one you use for webmail;
+// hPanel > Emails can reset it). Sending signed in through Hostinger's mail server is what
+// gets the alerts into your rodrikconsulting.com inbox. Left empty, the page falls back to
+// PHP mail(), which Hostinger may filter when it is addressed to your own domain.
 const MSA_MAIL_FROM = 'oscar@rodrikconsulting.com';
-// That mailbox's password (the one you use for webmail; hPanel > Emails can reset it).
-// With it, emails go out through Hostinger's mail server signed in as you, which is what gets
-// the lead alerts into your rodrikconsulting.com inbox. Left empty, the page falls back to PHP mail(),
-// which Hostinger may filter when it is addressed to your own domain.
 const MSA_SMTP_PASS = '';
+// Also send the visitor a short "thanks, I'll be in touch" email, from this address.
+// Replies to it go to MSA_NOTIFY_TO. If the no-reply mailbox exists in hPanel > Emails, put its
+// password here so it is sent signed in too; left empty, it is sent with PHP mail().
+const MSA_SEND_VISITOR_COPY = true;
+const MSA_VISITOR_FROM = 'no-reply@rodrikconsulting.com';
+const MSA_VISITOR_FROM_NAME = 'Rodrik Consulting';
+const MSA_VISITOR_SMTP_PASS = '';
+// Hostinger's outgoing mail server.
 const MSA_SMTP_HOST = 'smtp.hostinger.com';
 const MSA_SMTP_PORT = 465;
-// Also send the visitor a short "thanks, I'll be in touch" email.
-const MSA_SEND_VISITOR_COPY = true;
 // MySQL database from hPanel > Databases (browse leads in phpMyAdmin).
 // Leave MSA_DB_NAME empty to save to a SQLite file outside public_html instead.
 const MSA_DB_HOST = 'localhost';
@@ -156,11 +161,11 @@ function msa_display_name(string $name): string {
   return '"' . addcslashes($name, '"\\') . '"';
 }
 
-/* Sends a plain-text email. Through Hostinger's SMTP server when MSA_SMTP_PASS is set, otherwise PHP mail().
-   On failure, $error says why (never includes the password). */
-function msa_send_mail(string $to, string $subject, string $body, string $fromName, string $replyTo = '', ?string &$error = null): bool {
+/* Sends a plain-text email from $from. Through Hostinger's SMTP server, signed in as $from, when
+   $password is set; otherwise PHP mail(). On failure, $error says why (never includes the password). */
+function msa_send_mail(string $to, string $subject, string $body, string $from, string $fromName, string $password,
+                       string $replyTo = '', ?string &$error = null): bool {
   $error = null;
-  $from = MSA_MAIL_FROM;
   $host = preg_replace('/[^a-z0-9.-]/i', '', $_SERVER['SERVER_NAME'] ?? '') ?: 'rodrikconsulting.com';
   $headers = [
     'Date: ' . date(DATE_RFC2822),
@@ -174,7 +179,7 @@ function msa_send_mail(string $to, string $subject, string $body, string $fromNa
   $subject = mb_encode_mimeheader(msa_header_safe($subject), 'UTF-8', 'B', "\r\n");
   $body = str_replace("\r\n", "\n", quoted_printable_encode(str_replace(["\r\n", "\r"], "\n", $body)));
 
-  if (MSA_SMTP_PASS === '') {
+  if ($password === '') {
     $params = filter_var($from, FILTER_VALIDATE_EMAIL) ? '-f' . $from : '';
     error_clear_last();
     if (@mail($to, $subject, $body, implode("\r\n", $headers), $params)) return true;
@@ -200,7 +205,7 @@ function msa_send_mail(string $to, string $subject, string $body, string $fromNa
     && $step("EHLO $host", [250], 'EHLO')
     && $step('AUTH LOGIN', [334], 'AUTH')
     && $step(base64_encode($from), [334], 'login (username)')
-    && $step(base64_encode(MSA_SMTP_PASS), [235], 'login (check MSA_SMTP_PASS)')
+    && $step(base64_encode($password), [235], "login as $from (check its password)")
     && $step("MAIL FROM:<$from>", [250], 'MAIL FROM')
     && $step("RCPT TO:<$to>", [250, 251], "RCPT TO $to")
     && $step('DATA', [354], 'DATA')
@@ -239,7 +244,7 @@ function msa_notify(PDO $pdo, int $id, array $d): void {
       . "QR source:       " . $v($d['source']) . "\n\n"
       . "Business challenges:\n" . $v($d['challenges']) . "\n\n"
       . "Reply to this email to respond to {$d['first_name']} directly.\n";
-    if (!msa_send_mail(MSA_NOTIFY_TO, "New MSA Vegas lead: $name, {$d['company']}", $body, 'Rodrik Consulting Website', $d['email'], $why)) {
+    if (!msa_send_mail(MSA_NOTIFY_TO, "New MSA Vegas lead: $name, {$d['company']}", $body, MSA_MAIL_FROM, 'Rodrik Consulting Website', MSA_SMTP_PASS, $d['email'], $why)) {
       $status = 'failed';
       $problems[] = "internal notification failed: $why";
     }
@@ -251,7 +256,9 @@ function msa_notify(PDO $pdo, int $id, array $d): void {
       . "Your information came through, and I look forward to learning more about your business and exploring how we can put AI and technology to work for you.\n\n"
       . "I'll be in touch within one business day. In the meantime, you're welcome to explore " . MSA_HOME_URL . "\n\n"
       . "Dr. Oscar A. Rodriguez, DSL\nRodrik Consulting\n";
-    if (!msa_send_mail($d['email'], 'Thank you for connecting, ' . $d['first_name'], $body, 'Dr. Oscar A. Rodriguez', '', $why)) {
+    $replyTo = filter_var(MSA_NOTIFY_TO, FILTER_VALIDATE_EMAIL) ? MSA_NOTIFY_TO : '';
+    if (!msa_send_mail($d['email'], 'Thank you for connecting, ' . $d['first_name'], $body,
+                       MSA_VISITOR_FROM, MSA_VISITOR_FROM_NAME, MSA_VISITOR_SMTP_PASS, $replyTo, $why)) {
       $problems[] = "visitor confirmation failed: $why";
       if ($status === 'sent') $status = 'partial';
     }
