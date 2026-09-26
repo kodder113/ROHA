@@ -35,8 +35,13 @@ Verification: type-check, lint and the full automated test suite pass after thes
 |---|---|---|
 | "Powered by AI. Grounded in Strategic Leadership." | Tagline | Supplied in the owner's brief; describes positioning, not a measurement claim |
 | "Not a clinical, diagnostic or psychometric instrument"; "not a scientifically validated measure" | About, Terms, Framework | Accurate disclaimers |
-| "A consistent, versioned measure that allows organizations to compare perceptions over time" | About page | Accurate: scoring is deterministic and versioned. It claims consistency of calculation, not measurement reliability. The research specialist may prefer "consistent, versioned *survey*" until reliability evidence exists. |
+| "A consistent, versioned measure that allows organizations to compare perceptions over time within the same assessment version" | About page (qualified on September 26, 2026 for the version change) | Accurate: scoring is deterministic and versioned. It claims consistency of calculation, not measurement reliability. The research specialist may prefer "consistent, versioned *survey*" until reliability evidence exists. |
 
 ## Approved description of present status (for future materials)
 
-> ROHA is an organizational health assessment developed independently by Rodrik Consulting LLC. It is in its initial release. Its six dimensions draw on concepts that are well established in organizational research, but ROHA's own questions and scoring have not yet been empirically tested for reliability or validity. Scores describe how responding employees perceive their organization; they are not benchmarks and do not predict performance, retention or financial results.
+> ROHA is an organizational health assessment developed independently by Rodrik Consulting LLC. It is in its initial release. Its dimensions draw on concepts that are well established in organizational research, but ROHA's own questions and scoring have not yet been empirically tested for reliability or validity. Scores describe how responding employees perceive their organization; they are not benchmarks and do not predict performance, retention or financial results.
+
+## Update for the Version 2 application changes (September 26, 2026)
+
+Public copy no longer states a fixed number of dimensions or statements: counts come from the published framework, or the wording avoids a number (home, framework, features, how it works, about, terms, new-campaign page). The approved description above now reads "Its dimensions" instead of "Its six dimensions", so it stays accurate across versions. No new claims were introduced. ROHA is not described anywhere as related to FLAME.
+

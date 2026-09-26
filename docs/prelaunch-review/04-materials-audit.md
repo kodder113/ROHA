@@ -36,7 +36,7 @@ Every hit is either a **disclaimer** (e.g. "has not been scientifically or psych
 | Executive PDF | `src/lib/reports/pdf/*` | No | No | Cover and "About" use only facts supplied in the brief; one wording note above |
 | Survey consent and explanations | `src/components/survey/survey-app.tsx` | No | No | Accurately distinguishes confidential and anonymous modes and states limitations |
 | Dashboard charts | `src/components/dashboard/*` | No | No | Generic chart forms: six-axis radar, grouped and diverging bars, stacked distributions, line trend, heatmap. None reproduces the four-quadrant profile plot associated with the Competing Values Framework. |
-| Logo and brand mark | `src/components/brand/logo.tsx`, `src/app/icon.svg` | No | No | Original six-segment hexagon with an emerald core |
+| Logo and brand mark | `src/components/brand/logo.tsx`, `src/app/icon.svg` | No | No | Original six-segment hexagon with an emerald core (reviewed). **Replaced on September 26, 2026** by an original abstract mark (open ring, emerald core and point) that does not depict a number of dimensions; also in the PDF mark and favicon. Trademark clearance of the new mark is not assessed |
 | Home-page illustration | `src/components/marketing/illustrative-dashboard.tsx` | No | No | Labeled "Illustrative example"; shows no data |
 | Public pages (Home, How it Works, Framework, Features, Pricing, About, Contact) | `src/app/(marketing)/*` | No | No | Does not name the OCAI or its authors; no testimonials, client counts or validation claims |
 | Privacy Policy and Terms | same | No | No | Terms state ROHA "has not been scientifically or psychometrically validated". Both are marked as templates requiring counsel review |

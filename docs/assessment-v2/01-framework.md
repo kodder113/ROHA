@@ -1,6 +1,6 @@
 # 1. The ROHA Five-Dimension Organizational Health Framework (Version 2 draft)
 
-**Status:** proposed for owner review; not published. Version 1 (six dimensions × four items) remains the published assessment.
+**Status:** framework approved by the owner on September 26, 2026, subject to licensed intellectual-property screening and the other publication blockers in [document 10](10-publication-readiness-report.md). **Not published.** Version 1 (six dimensions × four items) remains the published assessment.
 
 ## 1.1 Structure
 
@@ -30,7 +30,7 @@ Each aspect is measured by one item and was chosen to be distinguishable from th
 
 The new fifth dimension is **not** the v1 Strategic Alignment and Innovation and Adaptability dimensions placed side by side. It is defined around one idea:
 
-> **Strategic Alignment & Innovation** is the organization's capacity to keep people connected to a shared direction *while* renewing how that direction is pursued. Employees understand where the organization is going and see their work advance it (**alignment**), and the organization adjusts when conditions change and welcomes and enables new ideas (**adaptive innovation**).
+> **Strategic Alignment & Innovation** is the organization's capacity to keep people connected to a shared direction *while* renewing how that direction is pursued. Employees understand where the organization is going and see their work advance it (**alignment**), and the organization adapts effectively when circumstances change and welcomes and enables new ideas (**adaptive innovation**).
 
 **Why direction, adaptability and innovation belong together.** The three are interdependent parts of one organizational capability:
 
@@ -52,7 +52,7 @@ The dimension therefore follows a sequence: **direction known → direction acte
 
 ## 1.3 Why five dimensions of five items
 
-The owner selected a five-dimension structure, consistent with the structural philosophy of the owner's earlier five-pillar FLAME framework. From a measurement-design perspective:
+The owner selected a five-dimension structure. The owner has separately developed a five-pillar framework, FLAME; the preference for a small number of broad, integrated dimensions is shared, but ROHA is not derived from FLAME (1.4). From a measurement-design perspective:
 
 - **Five items per dimension** improves on four. It allows more stable internal-consistency estimates and gives a factor model more degrees of freedom. It also restores content the four-item version had to drop (procedural clarity) and adds aspects that were missing (leadership communication, learning from mistakes, autonomy).
 - **Five dimensions** removes the separation between Strategic Alignment and Innovation and Adaptability, which v1 treated as independent although they describe linked capabilities (1.2).
@@ -63,7 +63,12 @@ The structure was chosen for these reasons and at the owner's direction, not to 
 
 ## 1.4 Independence
 
-**From FLAME.** ROHA Version 2 was drafted without access to FLAME materials. No FLAME dimension names, definitions, items or scoring rules were used; only the owner's instruction to adopt a five-part structure. **Owner action:** confirm that ROHA's dimension names, definitions and items do not reproduce FLAME content. Consider, with counsel, how the two frameworks should be described in relation to each other (e.g. independent instruments by the same author).
+**From FLAME.** **FLAME and ROHA are separate frameworks. ROHA is not an implementation, adaptation or version of FLAME** (owner decision, September 26, 2026). ROHA Version 2 was drafted without access to FLAME materials; no FLAME dimension names, definitions, items or scoring rules were used. The only link is that the same owner chose a five-part structure for both. Consequences:
+
+- ROHA materials, reports, the website and the methodology do not mention FLAME, and do not describe ROHA as based on, derived from or aligned with FLAME.
+- ROHA's dimension names, definitions, items, scoring and reports are maintained independently of FLAME. A change to one framework does not imply a change to the other.
+- If the two are ever mentioned together (for example, in the owner's biography), they are described as separate works by the same author.
+- **Owner action (open):** confirm in writing that ROHA's dimension names, definitions and items do not reproduce FLAME content. This confirmation belongs in the authorship record ([prelaunch review, document 7](../prelaunch-review/07-provenance-and-questions.md)).
 
 **From the OCAI.** Version 2 no longer shares the OCAI's six-by-four numeric architecture. That was not the reason for the change (see 1.3). All findings of the prelaunch review about constructs, item form, response format and scoring continue to apply: ROHA measures levels of organizational-health constructs with normative Likert items and has no culture-type classification.
 

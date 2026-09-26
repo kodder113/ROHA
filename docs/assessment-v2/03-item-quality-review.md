@@ -4,14 +4,14 @@ Criteria: **one concept per item**; **no leading language** (no "always", "never
 
 ## 3.1 Summary
 
-| Measure | Version 1 | Version 2 (proposed) |
+| Measure | Version 1 | Version 2 (approved wording) |
 |---|---|---|
 | Items | 24 | 25 |
-| Mean estimated reading grade | 10.6 | 8.1 |
+| Mean estimated reading grade | 10.6 | 8.6 |
 | Items estimated above grade 12 | 10 | 4 (OC4, EE3, SI1, SI3; each inflated by "organization") |
 | Items measuring more than one concept | 2 (OC2, OE1) | 0 |
 | Known redundant pairs | LE2↔SA3, SA2↔SA4, OE1↔IA3 | 0 (resolved by revision, combination and replacement) |
-| Items with phrasing shared with a proprietary instrument | 3 | 0 identified; licensed screening still required |
+| Items with phrasing shared with a proprietary instrument | 3 | 0 confirmed; EE5 flagged as close to job-design autonomy wording (3.3); licensed screening required |
 | Items allowing N/A | 4 | 4 (LE3, OE3, SI3, SI5) |
 
 ## 3.2 Item text, reading grade and N/A
@@ -32,7 +32,7 @@ Criteria: **one concept per item**; **no leading language** (no "always", "never
 | EE2 | The contributions I make are acknowledged here. | 9.1 | No |
 | EE3 | This organization invests in developing my skills. | 12.4 | No |
 | EE4 | I feel committed to helping this organization succeed. | 11.1 | No |
-| EE5 | I can choose my own approach to getting my work done. | 2.6 | No |
+| EE5 | I have appropriate freedom to decide how to accomplish my work. | 6.9 | No |
 | OE1 | Our work processes let us get things done without unnecessary steps. | 8.0 | No |
 | OE2 | The tools and technology available to me are well suited to my work. | 7.6 | No |
 | OE3 | Departments work well together when a task involves more than one of them. | 6.7 | Yes |
@@ -40,7 +40,7 @@ Criteria: **one concept per item**; **no leading language** (no "always", "never
 | OE5 | The procedures I am expected to follow in my work are clear. | 6.8 | No |
 | SI1 | I understand the organization's most important goals. | 12.4 | No |
 | SI2 | My daily work helps the organization reach its goals. | 6.3 | No |
-| SI3 | This organization adjusts quickly when conditions change. | 12.4 | Yes |
+| SI3 | This organization adapts effectively when circumstances change. | 19.2 | Yes |
 | SI4 | New ideas are welcomed here, even when they challenge established ways of working. | 9.4 | No |
 | SI5 | Employees receive the support they need to try out their ideas for improvement. | 7.6 | Yes |
 ## 3.3 New items: independence and design notes
@@ -48,7 +48,7 @@ Criteria: **one concept per item**; **no leading language** (no "always", "never
 | Key | Item | Design notes | Independence check (from recollection; verify against licensed copies) |
 |---|---|---|---|
 | OC5 | When mistakes happen here, the focus is on learning from them. | One concept (learning orientation after mistakes). Avoids the contrastive "rather than blame" form, which would add a second concept. Distinct from OC3: OC3 is about individuals speaking up; OC5 is about how the organization responds. | The concept appears in learning-organization and psychological-safety research. No distinctive shared phrasing identified. |
-| EE5 | I can choose my own approach to getting my work done. | One concept (discretion over method). Does not ask about scheduling or workload. | Job-design questionnaires measure autonomy with "independence and freedom in how I do the work"-type wording. EE5 deliberately avoids that pattern. |
+| EE5 | I have appropriate freedom to decide how to accomplish my work. | One concept (discretion over how work is accomplished). Does not ask about scheduling or workload. "Appropriate" asks about the right degree of freedom, not the maximum. Wording authored by the owner. | **Flag.** Job-design questionnaires measure autonomy with "freedom in how I do the work"-type wording. The owner's wording shares the "freedom … how … work" pattern while differing in structure ("appropriate", "decide", "accomplish"). The concept is generic and short phrases are weakly protected, but this is now the **highest-priority item for licensed screening**. If screening finds close similarity, a fallback is the earlier draft wording ("I can choose my own approach to getting my work done."), which the owner would need to re-approve. |
 | OE5 | The procedures I am expected to follow in my work are clear. | One concept (procedural clarity). Separate from OE4 (who is responsible) and OE1 (whether processes are efficient). | No distinctive shared phrasing identified. |
 
 ## 3.4 Distinguishability within each dimension
@@ -80,3 +80,10 @@ Pairs expected to correlate, and why each item remains distinct:
 ## 3.6 Leading language
 
 No item uses absolute terms ("always", "never"), evaluative adjectives that presume the answer ("excellent", "outstanding"), or assumptions about the respondent. Two items use mildly evaluative verbs appropriate to their constructs: "actually" (OC4), which marks the contrast between stated and enacted values, and "welcomed" (SI4), which is the construct itself. Neither implies a correct answer.
+
+## 3.7 Owner's final edits (September 26, 2026)
+
+- **EE5** reworded by the owner (see 3.3 for the screening flag). Reading grade rises from 2.6 to 6.9, still within the target.
+- **SI3** restored to the Version 1 IA2 wording with "This" instead of "The". It measures whether adaptation is *effective* rather than *quick*, which avoids implying that faster is always better. Estimated grade 19.2 (was 12.4). The Flesch–Kincaid formula heavily penalizes three long words ("organization", "effectively", "circumstances") in a seven-word sentence; the words are common, but respondents with lower reading levels may find the item harder. **Check in cognitive interviews**; the owner chose this wording, so any simplification would be an owner decision.
+- The mean estimated reading grade is 8.6 (v1: 10.6).
+

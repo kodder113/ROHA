@@ -1,6 +1,6 @@
 # 6. Dashboard Specification — Five-Dimension Framework
 
-The dashboard reads dimensions and items from each campaign's results, so most views adapt automatically to five dimensions. This specification defines the intended presentation and lists the places where the current dashboard assumes six dimensions or treats all campaigns as comparable. Those changes are listed in document 8 and are **not implemented** until you approve Version 2.
+**Status:** implemented (document 8), not published. The dashboard reads dimensions and items from each campaign's results, so most views adapt automatically to five dimensions. The "Change needed" column below records what the original specification required; the implemented behavior is described in 6.4.
 
 ## 6.1 Views
 
@@ -30,3 +30,19 @@ The dashboard reads dimensions and items from each campaign's results, so most v
 ## 6.3 Public demonstration
 
 The synthetic demonstration organization uses Version 1. After Version 2 is published, a synthetic Version 2 demonstration campaign can be added (clearly labeled) to show the five-dimension dashboard and a version-aware trend. This is optional and requires approval.
+
+## 6.4 Implemented behavior (September 26, 2026)
+
+| View | Implemented |
+|---|---|
+| Dimensional analysis | Subtitle counts dimensions from the data ("5 dimensions of organizational health") |
+| Valid responses tile | "N excluded under the inclusion rule (see Methodology)" |
+| Methodology note | Engine, rules and assessment versions; the inclusion rule in words; exclusion counts by dimension and how many involved N/A. Organization-wide only; segment views show no exclusion detail |
+| Historical trend | One series per assessment version (Version 1 solid, Version 2 dashed); no line joins versions; a vertical "v2" marker where Version 2 begins; tooltip and data table show the version; dimension series are chosen per version, so no dimension is trended across versions; caveat that versions are not comparable and **no change is calculated between them** |
+| History table | Version column; caveat when versions differ. Each row's gap is within its own campaign; no row-to-row change is shown |
+| Radar, bars, gaps, distributions, heatmap, departmental comparison | Data-driven; verified with five dimensions |
+
+Stricter than the original specification: dimension-level trends for LE, OC, EE and OE are **not** offered across versions (each gained an item and some items were revised).
+
+Not implemented (optional): SI grouping captions in item detail, an SI note on the gap chart, an item-level crosswalk trend.
+

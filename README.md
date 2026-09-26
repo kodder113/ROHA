@@ -22,7 +22,7 @@ ROHA is a multi-tenant SaaS platform owned and operated by **Rodrik Consulting L
 9. [Operations](#operations)
 10. [Known limitations and residual risks](#known-limitations-and-residual-risks)
 
-**Prelaunch intellectual property and methodological independence review:** see [`docs/prelaunch-review/`](docs/prelaunch-review/README.md). **Assessment Version 2 (draft, not published):** see [`docs/assessment-v2/`](docs/assessment-v2/README.md).
+**Prelaunch intellectual property and methodological independence review:** see [`docs/prelaunch-review/`](docs/prelaunch-review/README.md). **Assessment Version 2 (five dimensions × five items; approved by the owner subject to IP screening; application support implemented; not published):** see [`docs/assessment-v2/`](docs/assessment-v2/README.md) and the [publication readiness report](docs/assessment-v2/10-publication-readiness-report.md).
 
 ---
 
@@ -69,7 +69,7 @@ TypeScript types are generated into `src/lib/database.types.ts` (`npm run db:typ
 
 ## The ROHA framework and scoring methodology
 
-Six dimensions × four original items = **24 core items**, each rated for the **current state** and the **desired state** on a five-point agreement scale (1 Strongly disagree … 5 Strongly agree; *Not applicable* allowed on selected items) → **48 ratings per respondent**. Three optional open-ended questions are never scored. All wording lives in the database (`questions`, `qualitative_questions`) and is versioned.
+**Published version (Version 1):** six dimensions × four original items = **24 core items**, each rated for the **current state** and the **desired state** on a five-point agreement scale (1 Strongly disagree … 5 Strongly agree; *Not applicable* allowed on selected items) → **48 ratings per respondent**. Three optional open-ended questions are never scored. All wording lives in the database (`questions`, `qualitative_questions`) and is versioned.
 
 | Code | Dimension |
 | --- | --- |
@@ -80,17 +80,20 @@ Six dimensions × four original items = **24 core items**, each rated for the **
 | IA | Innovation and Adaptability |
 | SA | Strategic Alignment |
 
+**Version 2 (approved, not published):** five dimensions × five items (25 items, 50 ratings): LE, OC, EE, OE and **SI — Strategic Alignment & Innovation**. The application supports both versions: the publication checklist accepts balanced 5–6 × 4–6 structures when matching scoring rules are published; reports map sections H and I to SI items without sub-scores; the history chart keeps versions separate. The draft is loaded only by `supabase/drafts/assessment_v2_draft.sql` (never automatically), and `e2e/v2-transition.mjs` rehearses publication on a local database.
+
 Scoring (`src/lib/scoring/engine.ts`, rules v1 in `scoring_rule_versions`):
 
 - Normalized score = **((rating − 1) / 4) × 100**.
 - Question score = normalized mean of valid numeric ratings; N/A and missing ratings are excluded but counted.
 - Dimension score = mean of question scores (equal weights by default); overall index = mean of dimension scores (equal weights).
 - **Gap = desired − current** at every level. Positive: employees prefer more of the characteristic; negative: less (not automatically a problem).
-- A response is valid when it contains at least 12 numeric current-state ratings.
+- Inclusion rule: rules v1 include a response with at least 12 numeric current-state ratings. Rules v2 (draft) include a response only with at least 4 numeric current-state ratings in **every** dimension (N/A does not count). Excluded responses are counted and explained, by dimension, in dashboards and reports.
+- Scoring rules declare the assessment version they belong to (`assessmentVersion`, absent = 1); new campaigns use the newest published rules for their assessment version.
 - Distributions, sample sizes, N/A and missing counts are preserved. Descriptive bands (0–39, 40–59, 60–79, 80–100) are interpretive aids, not validated cut-offs.
 - No industry benchmarks are produced. Scores describe perceptions and do not establish effectiveness, retention, productivity or financial performance.
 
-**Versioning.** Published assessment versions, questions and scoring rules are immutable (database triggers). Campaigns pin the versions they were launched with, and closed-campaign aggregates are frozen, so historical results never change when content is revised. New versions are created as drafts in the super-admin portal.
+**Versioning.** Published assessment versions, questions and scoring rules are immutable (database triggers). Campaigns pin the versions they were launched with, and closed-campaign aggregates are frozen, so historical results never change when content is revised. New versions are created as drafts in the super-admin portal. Results from different assessment versions are never joined in trend charts, and no change in the overall index is calculated across versions.
 
 **AI never produces official numbers.** The AI receives an aggregate-only snapshot and writes narrative; every figure in the dashboard, report and PDF comes from the scoring engine. Narrative numbers are cross-checked against the snapshot and mismatches are flagged to the reader.
 

@@ -1,30 +1,34 @@
-# 8. Engineering Changes Required Before Version 2 Can Be Published
+# 8. Engineering Changes for Version 2 — Implemented, Not Published
 
-**None of these changes has been made.** They are listed so you can see the full cost of adopting Version 2. They would be implemented only after you approve the Version 2 content. Each preserves Version 1 behavior for existing campaigns.
+**Status (September 26, 2026):** all twelve changes are **implemented and tested** on the development branch. **Nothing has been published.** No production database was touched; the Version 2 draft loader has not been run outside local test databases. Version 1 behavior and every stored Version 1 result are unchanged.
 
-**Safety lock in place today:** the super-admin publication checklist (`src/app/admin/assessments/readiness.ts`) requires exactly six dimensions of four items, so a five-by-five version **cannot be published by accident**.
+**Safety lock (replaces the old 6 × 4 lock):** the super-admin checklist accepts a five-by-five version only when **published scoring rules declaring that assessment version** exist. A five-by-five version therefore cannot be published by accident, and scoring rules v2 cannot be picked up by Version 1 campaigns (or vice versa).
 
-| # | Area | File(s) | Current assumption | Required change | Why required |
-|---|---|---|---|---|---|
-| 1 | Publication checklist | `src/app/admin/assessments/readiness.ts`, `src/app/admin/assessments/[versionId]/page.tsx` | Exactly 6 × 4 | Accept the approved structure (e.g. every dimension has the same number of items, 4–6, and at least 5 dimensions), or a per-version expected structure | Otherwise Version 2 cannot be published |
-| 2 | AI report schema | `src/lib/ai/report-schema.ts` | `dimension_key` limited to the six v1 keys; sections D–I tied to v1 dimensions | Validate `dimension_key` against the campaign's own dimensions; version-aware mapping of sections D–I (document 7, 7.1) | AI and rules-based reports for Version 2 campaigns would fail validation |
-| 3 | AI request | `src/lib/ai/anthropic-report.ts` | Task text lists sections D–I by v1 dimension | Generate section guidance from the campaign's framework | Correct instructions to the model |
-| 4 | Rules-based summary | `src/lib/ai/rules-report.ts` | "six dimensions" text; v1 section mapping | Dimension-count text; version-aware mapping | Discover plan and fallback reports |
-| 5 | Report view and PDF | `src/components/app/report-view.tsx`, `src/lib/reports/pdf/*` | Uses the v1 section mapping; "six-dimensional" titles | Data-driven titles; H/I per document 7 | Correct report rendering |
-| 6 | Numeric validator | `src/lib/ai/validate.ts` | Structural numbers include 6, 24, 48 | Add 5, 25, 50 | Avoid false "unsupported number" warnings |
-| 7 | Historical trend | `src/lib/results/service.ts` (`TrendPoint`), `src/components/dashboard/trend-chart.tsx`, `src/app/app/history/page.tsx` | Connects all campaigns | Include assessment version per point; break and caveat across versions (document 6) | Prevents misleading comparisons |
-| 8 | Dashboard subtitle | `src/components/dashboard/results-sections.tsx` | "Six dimensions…" | Count from data | Accuracy |
-| 9 | Survey welcome text | `src/components/survey/survey-app.tsx` | "six areas … 24 statements" | Counts and dimension names from the survey definition | Accuracy for employees |
-| 10 | Public website copy | `src/app/(marketing)/*` (home, framework, how it works, features, about, terms), `src/app/app/campaigns/new/page.tsx` | "six dimensions", "24 statements" | Update at publication, or derive counts from the published framework | Accuracy; the framework page itself already reads the published version from the database |
-| 11 | Brand mark description | `src/components/brand/logo.tsx` (comment), any brand guidance | Hexagon mark "six segments … the six dimensions" | **Owner decision:** keep the hexagon as a general brand mark (no dimension symbolism), or commission a five-part mark | Brand consistency |
-| 12 | Tests | `src/lib/ai/*.test.ts`, `src/lib/reports/pdf/render.test.ts`, e2e | v1 fixtures only | Add five-by-five fixtures for reports and PDF; e2e run on a published Version 2 in a test database | Verification |
+| # | Area | File(s) | Change made | Verified by |
+|---|---|---|---|---|
+| 1 | Publication checklist | `src/app/admin/assessments/readiness.ts`, `…/[versionId]/page.tsx`, `…/actions.ts` | Accepts 5–6 dimensions with the same number of items (4–6) in each; requires published scoring rules for the version whose thresholds fit the structure. Dimension badges check balance instead of "4" | `src/lib/scoring/pairing.test.ts`; e2e (publication blocked until rules v2 are published) |
+| 1a | Scoring rules pairing (added) | `src/lib/scoring/pairing.ts`, `src/app/app/campaigns/actions.ts`, admin scoring page | Scoring rules declare `assessmentVersion` (absent = 1). New campaigns use the newest published rules for their assessment version | `pairing.test.ts`; e2e (v1 campaign → rules v1; v2 campaign → rules v2) |
+| 1b | Inclusion rule (added, owner adjustment 4) | `src/lib/scoring/{engine,types,config}.ts`, `src/lib/results/{exclusions,service,segments}.ts` | Engine 1.1: optional `minValidCurrentPerDimension`; exclusions recorded by dimension and cause; cached results reused within an engine major version; segments carry no exclusion detail | `engine.test.ts`; e2e |
+| 2 | AI report schema | `src/lib/ai/report-schema.ts` | Stored reports accept v1 and v2 dimension keys; the AI is given a schema limited to the campaign's own dimension keys. Version-aware sections D–I: H = SI3–SI5, I = SI1–SI2 with LE2/LE5 context, item-level only | `src/lib/ai/ai.test.ts` |
+| 3 | AI request | `src/lib/ai/anthropic-report.ts` | Task text generated from the snapshot: dimension and item counts, per-section scope, "do not calculate a separate score", mention of exclusions | `ai.test.ts` (request body inspected) |
+| 4 | Rules-based summary | `src/lib/ai/rules-report.ts` | Dimension count from data; H and I from SI item-level results; exclusion limitation | `ai.test.ts` |
+| 5 | Report view and PDF | `src/components/app/report-view.tsx`, `src/lib/reports/pdf/document.tsx` | Section scope and item figures for H and I; "Organizational Profile by Dimension"; dimension count in text; inclusion rule and exclusion reasons; limitations for version comparability, the integrated SI dimension and desired-state ceiling (Version 2) | `render.test.ts` (five-dimension PDF); e2e PDF |
+| 6 | Numeric validator | `src/lib/ai/validate.ts` | Adds 20, 25, 50 and the numbers in the inclusion rule and exclusion reasons | `ai.test.ts` |
+| 7 | Historical trend | `src/lib/results/{types,service}.ts`, `src/components/dashboard/trend-chart.tsx`, `src/app/app/history/page.tsx` | Separate series and line style per version; boundary marker; no connecting line or change across versions; per-version dimension series; version column; explanatory caveat | e2e (history page) |
+| 8 | Dashboard | `src/components/dashboard/results-sections.tsx` | Dimension count from data; inclusion rule and exclusion reasons in the Methodology note | e2e (results page) |
+| 9 | Survey welcome text | `src/components/survey/survey-app.tsx` | Number of areas, their names and the statement count from the survey definition | e2e (survey screenshots) |
+| 10 | Public website copy | home, framework, features, how it works, about, terms; new-campaign page; illustrative chart | Counts come from the published framework or are worded without a number. Pages revalidate hourly, so after publication the website can show the old counts for up to an hour | Build; e2e homepage |
+| 11 | Brand mark | `src/components/brand/logo.tsx`, `src/app/icon.svg`, `src/lib/reports/pdf/charts.tsx`, `src/components/marketing/section.tsx` | Owner direction: the six-segment hexagon is replaced by an abstract mark (an open ring around an emerald core, with an emerald point in the opening) that does not depict a number of dimensions. The hexagon background pattern is replaced by a dot grid | Visual check (app, PDF) |
+| 12 | Tests | `engine.test.ts`, `pairing.test.ts`, `ai.test.ts`, `render.test.ts`, `assessment-v2-draft.integration.test.ts`, `e2e/v2-transition.mjs` | Five-by-five fixtures (`src/lib/scoring/fixtures.ts`), 104 automated tests; a local end-to-end rehearsal of publication | Run on September 26, 2026: all passing; e2e Version 1 journey and Version 2 transition passing |
 
-**Not required:** scoring engine, survey submission function, privacy/suppression logic, segment analysis, database schema. All are structure-agnostic, and the five-by-five draft is tested against the engine.
+**Not changed:** survey submission function, privacy and suppression logic, database schema, migrations, Version 1 content, scoring rules v1, AI instructions v1.
 
-**Order of operations after approval:**
-1. Licensed-instrument screening and owner sign-off of wording.
-2. Items 1–12 implemented and tested.
+**Not implemented (optional, listed for completeness):** item-detail captions grouping SI into "Alignment (SI1–SI2)" and "Adaptive innovation (SI3–SI5)"; a note on negative SI gaps in the gap chart; an item-level crosswalk trend for identical items across versions; a synthetic Version 2 demonstration campaign.
+
+**Order of operations for publication** (details and owners in [document 10](10-publication-readiness-report.md)):
+1. Clear the IP, research and owner sign-off blockers.
+2. Deploy this code to production and confirm production credentials.
 3. Run the draft loader in production (creates drafts only).
-4. Review in Super Admin.
-5. Publish assessment v2 and scoring rules v2; activate AI instructions v2.
-6. Update public copy (item 10).
+4. Review in Super Admin; publish **scoring rules v2 first**, then assessment v2 (retiring v1 for new campaigns).
+5. Activate AI instructions v2.
+6. Confirm the website shows five dimensions after revalidation.

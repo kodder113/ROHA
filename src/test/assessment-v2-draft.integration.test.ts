@@ -124,6 +124,9 @@ describe.skipIf(!available)("Assessment Version 2 draft (five dimensions × five
     expect(Object.fromEntries(rows.map((r) => [r.key, r.prompt]))).toEqual(V2_ITEMS);
     expect(rows.every((r) => r.key.startsWith(r.code))).toBe(true);
     expect(new Set(rows.map((r) => r.prompt)).size).toBe(25);
+    // Content fingerprint recorded in docs/prelaunch-review/07-provenance-and-questions.md.
+    const text = rows.map((r) => `${r.key}:${r.prompt}`).join("\n");
+    expect(createHash("sha256").update(text).digest("hex")).toBe("8ef7dd86766f68d6eae2311d98b5e8acf17394de21450b9dda009800d87d4d6a");
   });
 
   it("drafts scoring rules v2 (at least 4 valid per dimension) and AI instructions v2 without activating them", async () => {

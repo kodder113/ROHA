@@ -832,6 +832,12 @@ function standardLimitations(snapshot: ReportInputSnapshot): string[] {
     ...(snapshot.methodology.assessmentVersion >= 2
       ? [
           `Assessment version. These results use assessment version ${snapshot.methodology.assessmentVersion}, whose dimensions, items and inclusion rule differ from version 1. Overall and dimension scores should not be compared directly with results from a different assessment version.`,
+          ...(snapshot.dimensions.some((d) => d.key === "strategy_innovation")
+            ? [
+                "Integrated dimension. Strategic Alignment & Innovation combines direction and adaptive-innovation aspects in one score. Whether a single score represents it well has not yet been tested, so its aspects are discussed using item-level results.",
+              ]
+            : []),
+          "Desired-state ratings. Desired ratings for most items are expected to be high, so gaps largely mirror current scores. Gaps are presented as indicators of where employees most want improvement; the value of the desired rating is being evaluated in the pilot.",
         ]
       : []),
     "Cross-sectional design. This assessment is a single snapshot. It cannot establish causes or trends; repeating the assessment after interventions is needed to measure change.",

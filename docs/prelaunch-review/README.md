@@ -7,6 +7,16 @@
 
 > **Important limitations of this review.** This package is a technical and methodological review prepared to support professional advice. It is **not legal advice** and does **not** establish that ROHA is legally cleared, free of infringement, or registrable. It does **not** establish that ROHA is scientifically or psychometrically validated. Comparisons with third-party instruments below are made from their publicly described structure and from recollection of widely published items; the reviewer did **not** have licensed copies of those instruments. Counsel and the research specialist should verify every comparison against authoritative sources before relying on it.
 
+## Addendum — Assessment Version 2 (September 26, 2026)
+
+This review examined Version 1. Since then the owner approved a five-dimension Version 2 (25 items), subject to licensed IP screening; it is **not published**. For counsel and the research specialist, the Version 2 materials are:
+
+- [Version 2 package](../assessment-v2/README.md): framework, item disposition (including the owner's EE5 and SI3 edits), item quality review, desired-state review, scoring specification (per-dimension inclusion rule), dashboard and reporting specifications, and the engineering record.
+- [Publication readiness report](../assessment-v2/10-publication-readiness-report.md): every remaining blocker, including independent IP screening and production credential testing.
+- Updated here: [methodology, 5.2.2, 5.6](05-methodology-specification.md) and [provenance, 7.1a and 7.4](07-provenance-and-questions.md).
+
+Findings in documents 1–4 about Version 1 still stand; Version 1 and its results are preserved unchanged. FLAME and ROHA are separate frameworks; ROHA is not an implementation of FLAME.
+
 ## Contents
 
 | # | Document | Primary audience |

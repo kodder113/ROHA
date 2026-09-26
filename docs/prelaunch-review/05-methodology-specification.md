@@ -25,13 +25,13 @@ The draft below is intended to become the first section of a **ROHA Technical Ma
 
 ## 5.2 Construct specification
 
-ROHA currently has one published version and one proposed draft:
+ROHA currently has one published version and one approved but unpublished draft:
 
-| | Version 1 (published) | Version 2 (draft, not published) |
+| | Version 1 (published) | Version 2 (framework and items approved by the owner September 26, 2026; not published) |
 |---|---|---|
 | Structure | 6 dimensions × 4 items (24 items, 48 ratings) | 5 dimensions × 5 items (25 items, 50 ratings) |
 | Dimensions | Leadership Effectiveness; Organizational Culture; Employee Engagement; Operational Effectiveness; Innovation and Adaptability; Strategic Alignment | Leadership Effectiveness; Organizational Culture; Employee Engagement; Operational Effectiveness; **Strategic Alignment & Innovation** |
-| Scoring rules | v1 (validity threshold 12) | v2 draft (validity threshold 13); method unchanged |
+| Scoring rules | v1 (inclusion: at least 12 of 24 current ratings) | v2 draft (inclusion: at least 4 current ratings in **every** dimension, hence 20 of 25); scoring formula unchanged |
 | Documentation | This section (5.2.1) | 5.2.2 and [docs/assessment-v2/](../assessment-v2/README.md) |
 
 **Purpose of the instrument (both versions).** ROHA is a structured employee-perception survey. It describes how employees experience key areas of organizational functioning today, and how they believe those areas should operate. Results support leadership discussion and prioritization. ROHA is not a diagnostic of culture type, a clinical or psychometric test, a predictor of individual or organizational outcomes, or a benchmark against other organizations.
@@ -51,7 +51,7 @@ ROHA currently has one published version and one proposed draft:
 | Innovation and Adaptability | How open the organization is to new ideas and how effectively it adapts and improves | Openness (IA1), adaptation (IA2), improvement responsiveness (IA3), support for employee innovation (IA4) | Innovation climate / support for innovation: Scott & Bruce (1994) |
 | Strategic Alignment | Whether employees understand organizational priorities and can connect their work to them | Goal understanding (SA1), work alignment (SA2), priority communication (SA3), contribution line of sight (SA4) | Line of sight: Boswell (2006) |
 
-### 5.2.2 Version 2 (proposed five-dimension draft)
+### 5.2.2 Version 2 (approved five-dimension framework, not published)
 
 **Measurement model (working hypothesis, not yet tested).** Five correlated first-order factors, each indicated by five positively keyed items. The integrated Strategic Alignment & Innovation dimension may show two correlated aspects (alignment: SI1–SI2; adaptive innovation: SI3–SI5); the pilot must test whether one dimension score is justified. Full rationale: [docs/assessment-v2/01-framework.md](../assessment-v2/01-framework.md).
 
@@ -63,14 +63,18 @@ ROHA currently has one published version and one proposed draft:
 | Operational Effectiveness | Processes, procedures, tools and technology, interdepartmental coordination and clarity of responsibilities enabling work | OE1–OE5 | Role ambiguity: Rizzo, House & Lirtzman (1970) |
 | Strategic Alignment & Innovation | Capacity to connect people to a shared direction and to renew how it is pursued: direction known, acted on and adapted; ideas welcomed and enabled | SI1–SI5 | Line of sight: Boswell (2006); innovation climate: Scott & Bruce (1994) |
 
+**Owner's final item edits (September 26, 2026):** EE5 "I have appropriate freedom to decide how to accomplish my work." and SI3 "This organization adapts effectively when circumstances change." (the Version 1 IA2 wording with "This" for "The").
+
+**Relationship to FLAME.** ROHA and the owner's FLAME framework are separate works. ROHA is not an implementation of FLAME, and its constructs, items and scoring were not derived from it.
+
 **Design decisions to record (with rationale):**
 
 1. Agreement (Likert) format rather than forced choice. This gives each construct an absolute level and supports subgroup comparison.
 2. Positive keying only. Reverse-keyed items often reduce reliability in short forms; the trade-off is undetectable acquiescence.
 3. Mixed self-referent and organization-referent items. The composition model for organization-level scores must be stated (Chan, 1998).
-4. N/A permitted only where a respondent may lack a basis for judgment (v1: LE3, OE3, IA2, IA4; v2 draft: LE3, OE3, SI3, SI5).
+4. N/A permitted only where a respondent may lack a basis for judgment (v1: LE3, OE3, IA2, IA4; v2: LE3, OE3, SI3, SI5).
 5. Equal weights pending evidence.
-6. A response is valid with at least half of its current ratings numeric (v1: 12 of 24; v2 draft: 13 of 25).
+6. Inclusion rule. **Version 1:** a response is included with at least half of its current ratings numeric (12 of 24). **Version 2 (owner decision):** a response is included only with at least 4 numeric current-state ratings in every dimension; N/A and blank answers do not count, so at least 20 of 25 are needed. Because the survey requires an answer or N/A for every item, the rule in practice excludes respondents who answer N/A to both SI3 and SI5. Exclusions are reported with their reasons in dashboards and reports ([Version 2 scoring specification, 5.3](../assessment-v2/05-scoring-specification.md)). Rationale: every dimension score of an included respondent rests on at least 80% of its items, which keeps each respondent's contribution comparable across dimensions.
 7. Privacy minimum group size of 5, a confidentiality threshold rather than a precision threshold.
 
 ## 5.3 Recommended validation program (outline for the research specialist)
@@ -148,3 +152,8 @@ The synthetic demonstration data is computer-generated and must never be used as
 - American Educational Research Association, American Psychological Association, & National Council on Measurement in Education. (2014). *Standards for educational and psychological testing.* AERA.
 
 These works establish that the constructs are studied in the literature. **ROHA's items were not adapted from them**, and citing them does not imply that ROHA shares their validity evidence.
+
+## 5.6 Version comparability (for the technical manual)
+
+Version 1 and Version 2 differ in dimensions, items, dimension weights (16.7% vs. 20%) and inclusion rules. **No change in the overall organizational health index, or in any dimension score, is calculated between campaigns that used different versions.** The application draws each version as a separate series in the history chart, marks where a new version begins, and states that the versions are not directly comparable. Ten items have identical wording in both versions and one (SI3/IA2) differs by one word; any item-level comparison across versions must note the different inclusion rules.
+
