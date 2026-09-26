@@ -280,8 +280,11 @@ try {
   // a sample narrative file exists, it replaces the narrative and is labeled.
   await page.goto(`${BASE}/app/campaigns/${campaignIds.follow}/report`);
   await page.click("button:has-text('Generate')");
-  for (let i = 0; i < 120; i++) {
-    if ((await one("select count(*)::int as n from ai_reports where campaign_id = $1 and status = 'completed'", [campaignIds.follow])).n > 0) break;
+  // An AI report can take several minutes; without an AI key the rules-based summary is immediate.
+  for (let i = 0; i < 900; i++) {
+    const row = await one("select status, error from ai_reports where campaign_id = $1 order by created_at desc limit 1", [campaignIds.follow]);
+    if (row?.status === "completed") break;
+    if (row?.status === "failed") throw new Error(`Report generation failed: ${row.error}`);
     await page.waitForTimeout(1000);
   }
   const report = await one("select id, input_snapshot from ai_reports where campaign_id = $1 and status = 'completed' order by created_at desc limit 1", [campaignIds.follow]);
