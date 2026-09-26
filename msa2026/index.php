@@ -6,7 +6,7 @@
 
 /* ===== Settings: fill these in before the event ===== */
 // Where new-lead alerts go.
-const MSA_NOTIFY_TO = '';
+const MSA_NOTIFY_TO = 'oscar@rodrikconsulting.com';
 // Sender for all emails. Use a mailbox that exists on rodrikconsulting.com (hPanel > Emails), or Hostinger may refuse to send.
 const MSA_MAIL_FROM = 'no-reply@rodrikconsulting.com';
 // Also send the visitor a short "thanks, I'll be in touch" email.
@@ -508,7 +508,7 @@ $ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1
 <header class="site-header">
   <div class="container nav">
     <a href="/" class="brand"><img class="logo" src="/assets/Logo_Transparent.png" alt="Rodrik Consulting"></a>
-    <?php if ($thanksName === null): ?><a class="btn" href="#request"><span class="lbl-long">Request a consultation</span><span class="lbl-short">Get in touch</span></a><?php endif; ?>
+    <?php if ($thanksName === null): ?><a class="btn" href="#msarequest"><span class="lbl-long">Request a consultation</span><span class="lbl-short">Get in touch</span></a><?php endif; ?>
   </div>
 </header>
 
@@ -520,7 +520,7 @@ $ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1
     <h1>Put AI and technology to work for your business</h1>
     <p class="lede">Great to meet you. Rodrik Consulting helps business owners and leaders use AI, automation, and data to save time, make better decisions, and grow, with practical steps rather than hype.</p>
     <div class="cta">
-      <a class="btn btn-lg" href="#request">Request a consultation</a>
+      <a class="btn btn-lg" href="#msarequest">Request a consultation</a>
       <span class="cta-note">Takes under a minute. Only 3 fields are required.</span>
     </div>
   </section>
@@ -563,7 +563,7 @@ $ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1
   </section>
   <?php endif; ?>
 
-  <section class="section band-dark" id="request">
+  <section class="section band-dark" id="msarequest">
     <?php if ($thanksName === null): ?>
     <div id="request-intro">
       <h2>Request a consultation</h2>
@@ -571,7 +571,7 @@ $ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1
     </div>
 
     <div class="form-card" id="form-card">
-      <form id="msa-form" class="msa-form" action="<?= h(strtok($_SERVER['REQUEST_URI'] ?? '/msa2026/', '?')) ?>#request" method="POST" novalidate autocomplete="on">
+      <form id="msa-form" class="msa-form" action="<?= h(strtok($_SERVER['REQUEST_URI'] ?? '/msa2026/', '?')) ?>#msarequest" method="POST" novalidate autocomplete="on">
         <input type="hidden" name="csrf" value="<?= h($_SESSION['msa_csrf']) ?>">
         <input type="hidden" name="src" value="<?= h($src) ?>">
         <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="fax_number" tabindex="-1" autocomplete="off"></label></div>
