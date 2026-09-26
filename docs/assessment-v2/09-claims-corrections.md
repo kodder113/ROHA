@@ -1,4 +1,4 @@
-# 4. Claims Review and Corrections (Owner Item 7)
+# 9. Claims Review and Corrections
 
 **Objective:** remove wording that could suggest ROHA is scientifically validated or evidence-based as an instrument, and state its present development status accurately.
 
@@ -25,9 +25,9 @@ Verification: type-check, lint and the full automated test suite pass after thes
 
 ## Pending — requires your approval (stored content, not changed)
 
-| Location | Current text | Proposed text | Why not changed now |
+| Location | Current text | Resolution in this draft | Status |
 |---|---|---|---|
-| AI reporting instructions, version 1 (active), in the database (`ai_report_instructions`) | "ROHA (Rodrik Organizational Health Assessment) is an independently developed **diagnostic** that measures employee perceptions…" | "…is an independently developed **organizational health assessment, in its initial release and not yet empirically validated,** that measures employee perceptions…" | Production data is changed only with your approval. When approved, create instructions version 2 in Super Admin → AI reporting and activate it. Version 1 stays on record for reports already generated. |
+| AI reporting instructions, version 1 (active), in the database | "…an independently developed **diagnostic** that measures employee perceptions across six dimensions…" | AI reporting instructions **version 2 (draft)**, created by the Version 2 loader, says "…an independently developed **organizational health assessment, in its initial release and not yet empirically validated**…" and describes the framework version-neutrally (document 7, 7.3) | Not activated. Activating v2 is part of Version 2 publication and needs your approval; v1 stays on record for reports already generated |
 
 ## Wording retained deliberately
 

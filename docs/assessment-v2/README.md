@@ -1,52 +1,52 @@
-# ROHA Assessment Version 2 — Draft for Owner Review
+# ROHA Assessment Version 2 — Five-Dimension Draft for Owner Review
 
 - **Status:** Proposed. **Not approved, not published, not loaded into any production database.**
 - **Prepared for:** Dr. Oscar A. Rodriguez, DSL — Rodrik Consulting LLC
 - **Date:** September 26, 2026
+- **Supersedes:** the earlier six-by-four Version 2 draft (retained in git history)
 - **Builds on:** [Prelaunch IP and methodological independence review](../prelaunch-review/README.md)
 
-## Scope (as instructed)
+## Owner direction implemented
 
-- Structure retained: **six dimensions × four questions**, current and desired ratings on the same 1–5 scale, N/A on the same items.
-- Assessment quality only. No application features or redesign.
-- Version 1 and all historical results preserved. Nothing published; no production data modified.
+- **Five dimensions × five items (25 items, 50 ratings):** Leadership Effectiveness · Organizational Culture · Employee Engagement · Operational Effectiveness · Strategic Alignment & Innovation.
+- The five-part structure follows the structural philosophy of the owner's FLAME framework. ROHA remains an independent assessment: no FLAME or OCAI content was used.
+- Version 1 and all historical results are preserved. Nothing is published and no production data is modified.
 
 ## Contents
 
-| # | Document | Owner instruction |
+| # | Document | Covers |
 |---|---|---|
-| 1 | [Version 1 vs Version 2 comparison: all 24 items with original, proposed revision, reason and intended construct](01-v1-v2-comparison.md) (also as [CSV](v1-v2-comparison.csv)) | 1, 2, 3, 4, 8 |
-| 2 | [Quality review of all 24 items: clarity, reading level, consistency, independence](02-item-quality-review.md) | 5 |
-| 3 | [Desired-state rating: item-by-item informativeness and ceiling-effect review](03-desired-state-review.md) | 6 |
-| 4 | [Claims review and corrections](04-claims-corrections.md) | 7 |
-| 5 | [Methodology document, updated to separate construct research from validation of ROHA](../prelaunch-review/05-methodology-specification.md) | 10 |
-| — | [Version 2 draft loader script (not run)](../../supabase/drafts/assessment_v2_draft.sql) and its [automated test](../../src/test/assessment-v2-draft.integration.test.ts) | 9 |
+| 1 | [Framework](01-framework.md) | Structure; five aspects per dimension; the integrated Strategic Alignment & Innovation construct; rationale; independence from FLAME and OCAI |
+| 2 | [Item disposition](02-item-disposition.md) (+ [CSV](v2-items.csv)) | What happened to each of the 24 v1 items (retained / revised / combined / replaced) and all 25 v2 items with source, construct and reason |
+| 3 | [Item quality review](03-item-quality-review.md) | Clarity, reading level, one concept per item, leading language, consistency, distinguishability, independence |
+| 4 | [Desired-state methodology review](04-desired-state-review.md) | **Completed before any scoring change.** Item-by-item ceiling analysis, recommendation, owner options |
+| 5 | [Scoring specification](05-scoring-specification.md) | Unchanged method; scoring rules v2 draft; cross-version comparability rules |
+| 6 | [Dashboard specification](06-dashboard-specification.md) | Five-dimension views; version-aware historical trend |
+| 7 | [Executive reporting specification](07-executive-reporting-specification.md) | Sections A–L mapping; SI treatment in sections H and I; AI instructions v2 draft; PDF |
+| 8 | [Engineering changes before publication](08-engineering-changes-before-publication.md) | Twelve changes needed to support Version 2 (not made) |
+| 9 | [Claims corrections](09-claims-corrections.md) | Development-status wording (from the previous round) |
+| — | [Methodology document](../prelaunch-review/05-methodology-specification.md) | Updated: Version 1 and Version 2 construct specifications; construct research vs. validation of ROHA |
+| — | [Draft loader](../../supabase/drafts/assessment_v2_draft.sql) and [its test](../../src/test/assessment-v2-draft.integration.test.ts) | Creates assessment v2, scoring rules v2 and AI instructions v2 as **drafts only** when run |
 
-## Summary of proposed changes
+## Summary
 
-| Owner item | Result |
+| Topic | Result |
 |---|---|
-| 1. EE2, EE3, OE2 independently expressed | Rewritten. No shared phrasing identified with the proprietary engagement-survey items noted in the prelaunch review. |
-| 2. LE2 / SA3 overlap | LE2 now measures whether leadership has set a clear direction. SA3 now measures whether leaders explain what priorities mean for the employee's team. |
-| 3. OC2 and OE1: one concept each | OC2 measures equal respect across backgrounds; OE1 measures only the absence of unnecessary process steps. |
-| 4. OE4 wording and definition aligned | Label and dimension definition now say "clarity of responsibilities", matching the item. Wording simplified. |
-| 5. All 24 reviewed | 13 revised, 11 unchanged. Mean estimated reading grade 10.6 → 8.6; items above grade 12: 10 → 4. |
-| 6. Desired-state informativeness | High ceiling risk for 22 items; moderate for IA1 and IA2. Desired rating retained (structure approved). Rating labels reworded; pilot test criterion proposed. |
-| 7. Misleading claims | Five copy corrections made in the application and README (e.g. "organizational diagnostic" → "organizational health assessment in its initial release"; "evidence-based" removed). One database item (AI instructions v1 wording) is pending your approval. |
-| 8. Comparison | Document 1 and the CSV. |
-| 9. Version 1 preserved | Nothing published. The draft loader creates an unpublished draft only when run and is tested to leave Version 1 (content fingerprint unchanged) and historical scores untouched. |
-| 10. Methodology | Section 5.4 added: construct research versus empirical validation of ROHA, validation status by source of evidence, and permitted wording. |
+| v1 items | 10 retained (5 moved into the new dimension), 12 revised, 1 combined (SA4 → SI2), 1 replaced (IA3) |
+| New items | OC5 learning from mistakes · EE5 autonomy · OE5 procedural clarity |
+| Strategic Alignment & Innovation | One construct: direction known → acted on → adapted → ideas welcomed → ideas enabled (SI1–SI5). Leadership behaviors about direction stay in Leadership (LE2, LE5) |
+| Item quality | No double-barreled items; no redundant pairs; mean estimated reading grade 8.1 (v1: 10.6) |
+| Independence | Items flagged in the prelaunch review rewritten; new items avoid known phrasing patterns; licensed screening still required |
+| Desired-state review | Ceiling likely for 22 of 25 items; informative for EE5, SI3, SI4. **Recommendation: retain the rating with the new labels and test it in a pilot. No scoring-engine change.** |
+| Scoring | Method unchanged; only the validity threshold goes from 12 to 13 (rules v2 draft). Engine verified on five-by-five data |
+| Comparability | Version 1 and Version 2 overall and SI scores are not directly comparable; 10 items with identical wording are comparable at item level |
+| Before publication | 12 engineering changes (document 8). The admin checklist currently blocks publishing a five-by-five version, which prevents accidental publication |
 
-## Before approving Version 2
+## Decisions needed from you
 
-1. Review documents 1–4.
-2. Have the research specialist review the wording and the desired-state recommendation.
-3. **Screen all 24 Version 2 items against licensed copies of relevant instruments** and record the result (prelaunch recommendation R2). The comparisons here were made from recollection, not licensed copies.
-4. Record your approval of the final wording, including any edits (human-authorship record; prelaunch recommendation R4).
-5. Decide whether to approve the pending AI-instructions wording change (document 4).
-
-## After approval (not yet done)
-
-1. Load the draft into the target database by running `supabase/drafts/assessment_v2_draft.sql`, or create it manually in Super Admin → Assessments → *Create new draft version*. The result is a **draft**; organizations cannot see or use it.
-2. Review the draft in Super Admin; make any final edits there.
-3. Publish Version 2 and retire Version 1 in Super Admin. New campaigns then use Version 2. Any campaign on Version 1 keeps its questions, scores and reports. This is enforced by the database and covered by automated tests.
+1. Approve, edit or reject the framework (document 1), including the integrated Strategic Alignment & Innovation definition.
+2. Approve, edit or reject the 25 items (documents 2–3). Record your approval and edits as the human-authorship record.
+3. Choose the desired-state option (document 4, 4.5); **A (retain and test) is recommended**.
+4. Confirm that ROHA's five dimensions, definitions and items do not reproduce FLAME content (document 1, 1.4).
+5. Decide whether the hexagon brand mark keeps its "six dimensions" meaning (document 8, item 11).
+6. After screening against licensed instruments, authorize the engineering changes (document 8) and then publication.

@@ -1,6 +1,6 @@
 # 5. Methodology Documentation Status and Draft Construct Specification
 
-> **Status of evidence (updated for Assessment Version 2 draft).** Two kinds of evidence must not be confused:
+> **Status of evidence (updated for the five-dimension Assessment Version 2 draft).** Two kinds of evidence must not be confused:
 > 1. **Research on the general constructs.** Published research shows that concepts such as trust in leadership, psychological safety, engagement and role clarity are established subjects of organizational study. This supports the *choice* of ROHA's dimensions.
 > 2. **Empirical validation of ROHA itself.** No reliability, factor-structure, fairness or criterion evidence yet exists for ROHA's own questions or scores. **ROHA is in its initial release and has not been empirically validated.**
 >
@@ -23,31 +23,54 @@
 
 The draft below is intended to become the first section of a **ROHA Technical Manual**, owned and completed by Rodrik Consulting's research specialist.
 
-## 5.2 Draft construct specification (for expert completion)
+## 5.2 Construct specification
 
-**Purpose of the instrument.** ROHA is a structured employee-perception survey. It describes how employees experience six areas of organizational functioning today, and how they believe those areas should operate. Results support leadership discussion and prioritization. ROHA is not a diagnostic of culture type, a clinical or psychometric test, a predictor of individual or organizational outcomes, or a benchmark against other organizations.
+ROHA currently has one published version and one proposed draft:
+
+| | Version 1 (published) | Version 2 (draft, not published) |
+|---|---|---|
+| Structure | 6 dimensions × 4 items (24 items, 48 ratings) | 5 dimensions × 5 items (25 items, 50 ratings) |
+| Dimensions | Leadership Effectiveness; Organizational Culture; Employee Engagement; Operational Effectiveness; Innovation and Adaptability; Strategic Alignment | Leadership Effectiveness; Organizational Culture; Employee Engagement; Operational Effectiveness; **Strategic Alignment & Innovation** |
+| Scoring rules | v1 (validity threshold 12) | v2 draft (validity threshold 13); method unchanged |
+| Documentation | This section (5.2.1) | 5.2.2 and [docs/assessment-v2/](../assessment-v2/README.md) |
+
+**Purpose of the instrument (both versions).** ROHA is a structured employee-perception survey. It describes how employees experience key areas of organizational functioning today, and how they believe those areas should operate. Results support leadership discussion and prioritization. ROHA is not a diagnostic of culture type, a clinical or psychometric test, a predictor of individual or organizational outcomes, or a benchmark against other organizations.
 
 **Intended population.** Employees at all organizational levels, surveyed as a whole or as a sample. Results are interpreted at the organization level and for subgroups of at least five valid respondents.
 
-**Measurement model (working hypothesis, not yet tested).** Six correlated first-order factors, each indicated by four positively keyed items, with current-state ratings as the primary measure. Desired-state ratings are a second, parallel measure whose informativeness is to be established (document 3).
+### 5.2.1 Version 1 (published)
 
-| Dimension | Working definition (Version 2 draft) | Facets (items) | Research on the general construct (verify). Supports the choice of construct, not ROHA's measurement of it |
+**Measurement model (working hypothesis, not yet tested).** Six correlated first-order factors, each indicated by four positively keyed items, with current-state ratings as the primary measure. Desired-state ratings are a second, parallel measure whose informativeness is to be established.
+
+| Dimension | Definition (as stored) | Facets (items) | Research on the general construct (verify). Supports the choice of construct, not ROHA's measurement of it |
 |---|---|---|---|
-| Leadership Effectiveness | Employees' perception that senior leadership is trustworthy, has set a clear direction, applies accountability consistently and makes sound decisions | Integrity (LE1), clarity of the direction set (LE2), accountability consistency (LE3), decision confidence (LE4) | Trust in leadership: Mayer, Davis & Schoorman (1995); Dirks & Ferrin (2002) |
-| Organizational Culture (working climate) | Perceived quality of everyday interpersonal climate: collaboration, equal respect, safety to speak up, and consistency between stated values and behavior | Collaboration (OC1), equal respect across backgrounds (OC2), voice safety (OC3), values integrity (OC4) | Psychological safety: Edmondson (1999); espoused vs. enacted values: Argyris & Schön (1974) |
-| Employee Engagement | The individual's experienced meaning, acknowledgement, development and commitment in relation to work and the organization | Meaning (EE1), acknowledgement of contributions (EE2), organizational investment in development (EE3), commitment (EE4) | Engagement: Kahn (1990); meaningful work: Hackman & Oldham (1976); commitment: Meyer & Allen (1991) |
-| Operational Effectiveness | The degree to which processes, tools and technology, coordination between departments, and clarity of responsibilities enable people to do their work well | Process efficiency (OE1), fit of tools and technology (OE2), interdepartmental coordination (OE3), clarity of responsibilities (OE4) | Role ambiguity: Rizzo, House & Lirtzman (1970) |
-| Innovation and Adaptability | Perceived openness to ideas and capacity to adapt and improve | Openness (IA1), adaptation (IA2), improvement responsiveness (IA3), support for employee innovation (IA4) | Innovation climate / support for innovation: Scott & Bruce (1994) |
-| Strategic Alignment | Whether employees understand the organization's goals, see how their own work connects to them, and hear from leaders what current priorities mean for their team | Goal understanding (SA1), work alignment (SA2), leadership translation of priorities (SA3), contribution line of sight (SA4) | Line of sight: Boswell (2006) |
+| Leadership Effectiveness | How employees experience the integrity, direction, accountability and decision-making of organizational leadership | Integrity (LE1), direction (LE2), accountability consistency (LE3), decision confidence (LE4) | Trust in leadership: Mayer, Davis & Schoorman (1995); Dirks & Ferrin (2002) |
+| Organizational Culture | The working environment and the shared behavioral expectations that shape how people treat one another | Collaboration (OC1), respect/inclusion (OC2), voice safety (OC3), values integrity (OC4) | Psychological safety: Edmondson (1999); espoused vs. enacted values: Argyris & Schön (1974) |
+| Employee Engagement | The relationship employees have with their work and with the organization | Meaning (EE1), recognition (EE2), development (EE3), commitment (EE4) | Engagement: Kahn (1990); meaningful work: Hackman & Oldham (1976); commitment: Meyer & Allen (1991) |
+| Operational Effectiveness | The degree to which processes, tools, coordination and clarity enable people to do their work well | Process efficiency (OE1), resources (OE2), coordination (OE3), responsibility clarity (OE4) | Role ambiguity: Rizzo, House & Lirtzman (1970) |
+| Innovation and Adaptability | How open the organization is to new ideas and how effectively it adapts and improves | Openness (IA1), adaptation (IA2), improvement responsiveness (IA3), support for employee innovation (IA4) | Innovation climate / support for innovation: Scott & Bruce (1994) |
+| Strategic Alignment | Whether employees understand organizational priorities and can connect their work to them | Goal understanding (SA1), work alignment (SA2), priority communication (SA3), contribution line of sight (SA4) | Line of sight: Boswell (2006) |
+
+### 5.2.2 Version 2 (proposed five-dimension draft)
+
+**Measurement model (working hypothesis, not yet tested).** Five correlated first-order factors, each indicated by five positively keyed items. The integrated Strategic Alignment & Innovation dimension may show two correlated aspects (alignment: SI1–SI2; adaptive innovation: SI3–SI5); the pilot must test whether one dimension score is justified. Full rationale: [docs/assessment-v2/01-framework.md](../assessment-v2/01-framework.md).
+
+| Dimension | Definition (draft) | Aspects (items) | Research on the general construct (verify). Supports the choice of construct, not ROHA's measurement of it |
+|---|---|---|---|
+| Leadership Effectiveness | Senior leadership's integrity, direction-setting, accountability, decision-making and communication of priorities | Integrity (LE1), direction set (LE2), accountability consistency (LE3), decision confidence (LE4), priorities explained (LE5) | Trust in leadership: Mayer, Davis & Schoorman (1995); Dirks & Ferrin (2002) |
+| Organizational Culture | Everyday working relationships and shared norms: collaboration, equal respect, voice safety, learning from mistakes, values integrity | OC1–OC5 | Psychological safety: Edmondson (1999); espoused vs. enacted values: Argyris & Schön (1974) |
+| Employee Engagement | Connection to work and organization: meaning, acknowledgement, development, autonomy, commitment | EE1–EE5 | Engagement: Kahn (1990); job characteristics incl. autonomy: Hackman & Oldham (1976); commitment: Meyer & Allen (1991) |
+| Operational Effectiveness | Processes, procedures, tools and technology, interdepartmental coordination and clarity of responsibilities enabling work | OE1–OE5 | Role ambiguity: Rizzo, House & Lirtzman (1970) |
+| Strategic Alignment & Innovation | Capacity to connect people to a shared direction and to renew how it is pursued: direction known, acted on and adapted; ideas welcomed and enabled | SI1–SI5 | Line of sight: Boswell (2006); innovation climate: Scott & Bruce (1994) |
 
 **Design decisions to record (with rationale):**
 
 1. Agreement (Likert) format rather than forced choice. This gives each construct an absolute level and supports subgroup comparison.
 2. Positive keying only. Reverse-keyed items often reduce reliability in short forms; the trade-off is undetectable acquiescence.
 3. Mixed self-referent and organization-referent items. The composition model for organization-level scores must be stated (Chan, 1998).
-4. N/A permitted only where a respondent may lack a basis for judgment (LE3, OE3, IA2, IA4).
+4. N/A permitted only where a respondent may lack a basis for judgment (v1: LE3, OE3, IA2, IA4; v2 draft: LE3, OE3, SI3, SI5).
 5. Equal weights pending evidence.
-6. A response is valid with 12 or more numeric current ratings.
+6. A response is valid with at least half of its current ratings numeric (v1: 12 of 24; v2 draft: 13 of 25).
 7. Privacy minimum group size of 5, a confidentiality threshold rather than a precision threshold.
 
 ## 5.3 Recommended validation program (outline for the research specialist)
@@ -87,9 +110,9 @@ The categories follow the sources of validity evidence described in the *Standar
 
 | Source of evidence | What it would show | ROHA status (Version 2 draft) |
 |---|---|---|
-| Test content | Items represent each construct; experts agree | **Partial and internal only.** Items were drafted from the owner's construct specification and reviewed internally (prelaunch review and this v2 package). Independent expert review has not been conducted. |
+| Test content | Items represent each construct; experts agree | **Partial and internal only.** Version 1 and the Version 2 draft items were drafted from the owner's construct specifications and reviewed internally (prelaunch review; docs/assessment-v2). Independent expert review has not been conducted. |
 | Response processes | Employees understand items and ratings as intended (including the desired-state rating) | **Not started.** Cognitive interviews recommended. |
-| Internal structure | Six-factor structure; reliability (ω/α); item redundancy | **Not started.** No real response data exists. |
+| Internal structure | Factor structure (v1: six factors; v2: five, including unidimensionality of Strategic Alignment & Innovation); reliability (ω/α); item redundancy | **Not started.** No real response data exists. |
 | Relations to other variables | Expected associations with established measures (convergent/discriminant) and relevant outcomes | **Not started.** |
 | Fairness / measurement invariance | Items function comparably across levels, tenure, sectors and demographic groups | **Not started.** |
 | Consequences of use | Results are used as intended (discussion and prioritization, not individual evaluation) | **Design safeguards only** (privacy thresholds, reporting guidance); no empirical study. |
