@@ -8,8 +8,15 @@
 /* ===== Settings: fill these in before the event ===== */
 // Where new-lead alerts go.
 const MSA_NOTIFY_TO = 'oscar@rodrikconsulting.com';
-// Sender for all emails. Use a mailbox that exists on rodrikconsulting.com (hPanel > Emails), or Hostinger may refuse to send.
-const MSA_MAIL_FROM = 'no-reply@rodrikconsulting.com';
+// Mailbox the emails come from. Visitors see this as the sender and replies come back to it.
+const MSA_MAIL_FROM = 'oscar@rodrikconsulting.com';
+// That mailbox's password (the one you use for webmail; hPanel > Emails can reset it).
+// With it, emails go out through Hostinger's mail server signed in as you, which is what gets
+// the lead alerts into your rodrikconsulting.com inbox. Left empty, the page falls back to PHP mail(),
+// which Hostinger may filter when it is addressed to your own domain.
+const MSA_SMTP_PASS = '';
+const MSA_SMTP_HOST = 'smtp.hostinger.com';
+const MSA_SMTP_PORT = 465;
 // Also send the visitor a short "thanks, I'll be in touch" email.
 const MSA_SEND_VISITOR_COPY = true;
 // MySQL database from hPanel > Databases (browse leads in phpMyAdmin).
@@ -142,20 +149,65 @@ function msa_validate(array $in): array {
 
 function msa_header_safe(string $s): string { return trim(str_replace(["\r", "\n"], ' ', $s)); }
 
-function msa_send_mail(string $to, string $subject, string $body, string $replyTo = ''): bool {
+/* "Dr. Oscar A. Rodriguez" needs quotes in a From line (the periods); non-ASCII names get encoded. */
+function msa_display_name(string $name): string {
+  $name = msa_header_safe($name);
+  if (preg_match('/[^\x20-\x7E]/', $name)) return mb_encode_mimeheader($name, 'UTF-8', 'B', "\r\n");
+  return '"' . addcslashes($name, '"\\') . '"';
+}
+
+/* Sends a plain-text email. Through Hostinger's SMTP server when MSA_SMTP_PASS is set, otherwise PHP mail().
+   On failure, $error says why (never includes the password). */
+function msa_send_mail(string $to, string $subject, string $body, string $fromName, string $replyTo = '', ?string &$error = null): bool {
+  $error = null;
   $from = MSA_MAIL_FROM;
+  $host = preg_replace('/[^a-z0-9.-]/i', '', $_SERVER['SERVER_NAME'] ?? '') ?: 'rodrikconsulting.com';
   $headers = [
-    'From: ' . mb_encode_mimeheader('Rodrik Consulting', 'UTF-8') . " <$from>",
+    'Date: ' . date(DATE_RFC2822),
+    'From: ' . msa_display_name($fromName) . " <$from>",
+    'Message-ID: <' . bin2hex(random_bytes(12)) . '@' . (explode('@', $from)[1] ?? $host) . '>',
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: 8bit',
-    'X-Mailer: PHP/' . PHP_VERSION,
+    'Content-Transfer-Encoding: quoted-printable',
   ];
   if ($replyTo !== '') $headers[] = 'Reply-To: ' . msa_header_safe($replyTo);
   $subject = mb_encode_mimeheader(msa_header_safe($subject), 'UTF-8', 'B', "\r\n");
-  $params = filter_var($from, FILTER_VALIDATE_EMAIL) ? '-f' . $from : '';
-  error_clear_last();
-  return @mail($to, $subject, $body, implode("\r\n", $headers), $params);
+  $body = str_replace("\r\n", "\n", quoted_printable_encode(str_replace(["\r\n", "\r"], "\n", $body)));
+
+  if (MSA_SMTP_PASS === '') {
+    $params = filter_var($from, FILTER_VALIDATE_EMAIL) ? '-f' . $from : '';
+    error_clear_last();
+    if (@mail($to, $subject, $body, implode("\r\n", $headers), $params)) return true;
+    $error = 'mail(): ' . (error_get_last()['message'] ?? 'returned false');
+    return false;
+  }
+
+  $fp = @stream_socket_client('ssl://' . MSA_SMTP_HOST . ':' . MSA_SMTP_PORT, $errno, $errstr, 15);
+  if (!$fp) { $error = "SMTP connect to " . MSA_SMTP_HOST . " failed: $errstr"; return false; }
+  stream_set_timeout($fp, 20);
+  // Send one command (or none, for the greeting) and check the reply code. $shown is what an error may reveal.
+  $step = function (?string $line, array $expect, string $shown) use ($fp, &$error): bool {
+    if ($line !== null) fwrite($fp, $line . "\r\n");
+    $reply = '';
+    while (($l = fgets($fp, 1024)) !== false) { $reply .= $l; if (!isset($l[3]) || $l[3] === ' ') break; }
+    if (in_array((int)substr($reply, 0, 3), $expect, true)) return true;
+    $error = "SMTP $shown: " . (trim($reply) ?: 'no reply');
+    return false;
+  };
+  $message = implode("\r\n", array_merge(["To: <$to>", "Subject: $subject"], $headers)) . "\r\n\r\n"
+    . preg_replace('/^\./m', '..', str_replace("\n", "\r\n", $body));
+  $ok = $step(null, [220], 'greeting')
+    && $step("EHLO $host", [250], 'EHLO')
+    && $step('AUTH LOGIN', [334], 'AUTH')
+    && $step(base64_encode($from), [334], 'login (username)')
+    && $step(base64_encode(MSA_SMTP_PASS), [235], 'login (check MSA_SMTP_PASS)')
+    && $step("MAIL FROM:<$from>", [250], 'MAIL FROM')
+    && $step("RCPT TO:<$to>", [250, 251], "RCPT TO $to")
+    && $step('DATA', [354], 'DATA')
+    && $step($message . "\r\n.", [250], 'message');
+  @fwrite($fp, "QUIT\r\n");
+  fclose($fp);
+  return $ok;
 }
 
 /* Emails go out after the lead is saved. A failure here never loses the lead:
@@ -171,7 +223,7 @@ function msa_notify(PDO $pdo, int $id, array $d): void {
     $problems[] = 'MSA_NOTIFY_TO is not set to a valid email address';
   } else {
     $name = trim($d['first_name'] . ' ' . $d['last_name']);
-    $body = "New consultation request from rodrikconsulting.com/msa2026\n"
+    $body = "New consultation request from rodrikconsulting.com/#msarequest (MSA Vegas 2026)\n"
       . "Lead #$id · $when\n\n"
       . "Name:            {$name}\n"
       . "Email:           {$d['email']}\n"
@@ -187,9 +239,9 @@ function msa_notify(PDO $pdo, int $id, array $d): void {
       . "QR source:       " . $v($d['source']) . "\n\n"
       . "Business challenges:\n" . $v($d['challenges']) . "\n\n"
       . "Reply to this email to respond to {$d['first_name']} directly.\n";
-    if (!msa_send_mail(MSA_NOTIFY_TO, "New MSA Vegas lead: $name, {$d['company']}", $body, $d['email'])) {
+    if (!msa_send_mail(MSA_NOTIFY_TO, "New MSA Vegas lead: $name, {$d['company']}", $body, 'Rodrik Consulting Website', $d['email'], $why)) {
       $status = 'failed';
-      $problems[] = 'internal notification failed: ' . (error_get_last()['message'] ?? 'mail() returned false');
+      $problems[] = "internal notification failed: $why";
     }
   }
 
@@ -199,9 +251,8 @@ function msa_notify(PDO $pdo, int $id, array $d): void {
       . "Your information came through, and I look forward to learning more about your business and exploring how we can put AI and technology to work for you.\n\n"
       . "I'll be in touch within one business day. In the meantime, you're welcome to explore " . MSA_HOME_URL . "\n\n"
       . "Dr. Oscar A. Rodriguez, DSL\nRodrik Consulting\n";
-    $replyTo = filter_var(MSA_NOTIFY_TO, FILTER_VALIDATE_EMAIL) ? MSA_NOTIFY_TO : '';
-    if (!msa_send_mail($d['email'], 'Thank you for connecting, ' . $d['first_name'], $body, $replyTo)) {
-      $problems[] = 'visitor confirmation failed: ' . (error_get_last()['message'] ?? 'mail() returned false');
+    if (!msa_send_mail($d['email'], 'Thank you for connecting, ' . $d['first_name'], $body, 'Dr. Oscar A. Rodriguez', '', $why)) {
+      $problems[] = "visitor confirmation failed: $why";
       if ($status === 'sent') $status = 'partial';
     }
   }
