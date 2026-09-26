@@ -1,9 +1,9 @@
 <?php
-/* MSA Vegas 2026 consultation request: rodrikconsulting.com/#msarequest
+/* MSA Vegas 2026 consultation request: rodrikconsulting.com/#request
    Upload to public_html/msa2026/index.php. The homepage loads this file and shows the form
-   at the top of the page only when the address ends in #msarequest (the brochure and tabletop
+   at the top of the page only when the address ends in #request (the brochure and tabletop
    QR codes). This file also receives the form and saves it, and sends anyone who opens
-   /msa2026 on to /#msarequest. Only first name, email and company are required. */
+   /msa2026 on to /#request. Only first name, email and company are required. */
 
 /* ===== Settings: fill these in before the event ===== */
 // Where new-lead alerts go.
@@ -228,7 +228,7 @@ function msa_notify(PDO $pdo, int $id, array $d): void {
     $problems[] = 'MSA_NOTIFY_TO is not set to a valid email address';
   } else {
     $name = trim($d['first_name'] . ' ' . $d['last_name']);
-    $body = "New consultation request from rodrikconsulting.com/#msarequest (MSA Vegas 2026)\n"
+    $body = "New consultation request from rodrikconsulting.com/#request (MSA Vegas 2026)\n"
       . "Lead #$id · $when\n\n"
       . "Name:            {$name}\n"
       . "Email:           {$d['email']}\n"
@@ -328,7 +328,7 @@ function msa_handle_post(): array {
 
 
 /* ===== The homepage section. index.php calls this at the top of <main>. =====
-   Hidden unless the address ends in #msarequest, or the page is showing a result
+   Hidden unless the address ends in #request, or the page is showing a result
    from a submission made without JavaScript. */
 function msa_render_section(): void {
   $thanksName = $_SESSION['msa_thanks'] ?? null;
@@ -345,91 +345,91 @@ function msa_render_section(): void {
   $inv = function (string $k) use ($fieldErrors) { return isset($fieldErrors[$k]) ? ' aria-invalid="true"' : ''; };
 ?>
 <style>
-  #msarequest{display:none;}
-  #msarequest:target, #msarequest.is-open{display:block;}
-  #msarequest{border-bottom:1px solid rgba(245,132,38,.35);
+  #request{display:none;}
+  #request:target, #request.is-open{display:block;}
+  #request{border-bottom:1px solid rgba(245,132,38,.35);
     background:radial-gradient(circle at 18% 0%, rgba(0,107,182,.16), transparent 40%),
                radial-gradient(circle at 88% 30%, rgba(245,132,38,.07), transparent 30%),
                linear-gradient(180deg, #05080d 0%, #08111d 100%);}
-  #msarequest [hidden]{display:none !important;}
-  #msarequest .msa-kicker{display:inline-block;margin:0 0 14px;padding:6px 12px;border-radius:999px;
+  #request [hidden]{display:none !important;}
+  #request .msa-kicker{display:inline-block;margin:0 0 14px;padding:6px 12px;border-radius:999px;
     border:1px solid rgba(245,132,38,.5);background:rgba(245,132,38,.08);
     color:var(--knicks-orange);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;}
-  #msarequest .msa-intro h2{margin:0;max-width:820px;font-size:clamp(30px,4.2vw,46px);line-height:1.08;letter-spacing:-.03em;}
-  #msarequest .msa-lede{margin:16px 0 0;max-width:760px;font-size:18px;color:var(--ink);opacity:.92;}
-  #msarequest .msa-help{display:flex;flex-wrap:wrap;gap:8px 18px;margin:18px 0 0;padding:0;list-style:none;color:var(--muted);font-size:15px;}
-  #msarequest .msa-help li{position:relative;padding-left:18px;}
-  #msarequest .msa-help li::before{content:"";position:absolute;left:0;top:.5em;width:8px;height:8px;border-radius:50%;background:var(--knicks-orange);}
-  #msarequest .msa-note{margin:18px 0 0;color:var(--muted);font-size:15px;}
-  #msarequest .btn-lg{padding:14px 22px;font-size:17px;}
-  #msarequest button.btn{font:inherit;font-weight:600;cursor:pointer;}
-  #msarequest .btn[disabled]{opacity:.65;cursor:progress;transform:none;}
+  #request .msa-intro h2{margin:0;max-width:820px;font-size:clamp(30px,4.2vw,46px);line-height:1.08;letter-spacing:-.03em;}
+  #request .msa-lede{margin:16px 0 0;max-width:760px;font-size:18px;color:var(--ink);opacity:.92;}
+  #request .msa-help{display:flex;flex-wrap:wrap;gap:8px 18px;margin:18px 0 0;padding:0;list-style:none;color:var(--muted);font-size:15px;}
+  #request .msa-help li{position:relative;padding-left:18px;}
+  #request .msa-help li::before{content:"";position:absolute;left:0;top:.5em;width:8px;height:8px;border-radius:50%;background:var(--knicks-orange);}
+  #request .msa-note{margin:18px 0 0;color:var(--muted);font-size:15px;}
+  #request .btn-lg{padding:14px 22px;font-size:17px;}
+  #request button.btn{font:inherit;font-weight:600;cursor:pointer;}
+  #request .btn[disabled]{opacity:.65;cursor:progress;transform:none;}
 
-  #msarequest .form-card{max-width:860px;margin-top:26px;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
+  #request .form-card{max-width:860px;margin-top:26px;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
     border:1px solid rgba(245,132,38,.38);border-radius:16px;padding:30px;box-shadow:var(--shadow);}
-  #msarequest .msa-form .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
-  #msarequest .msa-form .row.three{grid-template-columns:repeat(3,minmax(0,1fr));}
-  #msarequest .msa-form .field{display:flex;flex-direction:column;gap:6px;margin:0 0 16px;min-width:0;}
-  #msarequest .msa-form .field > span, #msarequest .msa-form legend{font-weight:600;font-size:15px;color:var(--ink);}
-  #msarequest .msa-form .opt{font-weight:400;color:var(--muted);font-size:13px;margin-left:4px;}
-  #msarequest .msa-form .req{color:var(--knicks-orange);margin-left:2px;}
-  #msarequest .msa-form input[type=text], #msarequest .msa-form input[type=email], #msarequest .msa-form input[type=tel],
-  #msarequest .msa-form select, #msarequest .msa-form textarea{
+  #request .msa-form .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+  #request .msa-form .row.three{grid-template-columns:repeat(3,minmax(0,1fr));}
+  #request .msa-form .field{display:flex;flex-direction:column;gap:6px;margin:0 0 16px;min-width:0;}
+  #request .msa-form .field > span, #request .msa-form legend{font-weight:600;font-size:15px;color:var(--ink);}
+  #request .msa-form .opt{font-weight:400;color:var(--muted);font-size:13px;margin-left:4px;}
+  #request .msa-form .req{color:var(--knicks-orange);margin-left:2px;}
+  #request .msa-form input[type=text], #request .msa-form input[type=email], #request .msa-form input[type=tel],
+  #request .msa-form select, #request .msa-form textarea{
     width:100%;box-sizing:border-box;margin:0;padding:12px 14px;border-radius:10px;font:inherit;font-size:16px; /* 16px stops iOS zooming in */
     color:var(--ink);background:rgba(5,8,13,.85);border:1px solid rgba(255,255,255,.16);transition:border-color .15s, box-shadow .15s;}
-  #msarequest .msa-form select{appearance:none;-webkit-appearance:none;padding-right:36px;
+  #request .msa-form select{appearance:none;-webkit-appearance:none;padding-right:36px;
     background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
     background-position:calc(100% - 20px) 52%,calc(100% - 14px) 52%;background-size:6px 6px;background-repeat:no-repeat;}
-  #msarequest .msa-form select option{background:#0b0f17;color:var(--ink);}
-  #msarequest .msa-form textarea{min-height:120px;resize:vertical;}
-  #msarequest .msa-form input:focus, #msarequest .msa-form select:focus, #msarequest .msa-form textarea:focus{outline:none;border-color:var(--knicks-blue);box-shadow:var(--focus);}
-  #msarequest .msa-form [aria-invalid="true"]{border-color:#ff8a80;}
-  #msarequest .msa-form .err{color:#ff8a80;font-size:14px;}
-  #msarequest .msa-form .err:empty{display:none;}
-  #msarequest .msa-form .divider{display:flex;align-items:center;gap:12px;margin:10px 0 18px;color:var(--muted);font-size:14px;}
-  #msarequest .msa-form .divider::before, #msarequest .msa-form .divider::after{content:"";flex:1;height:1px;background:var(--stroke);}
-  #msarequest .msa-form fieldset{border:0;padding:0;margin:0 0 16px;min-width:0;}
-  #msarequest .msa-form legend{padding:0;margin-bottom:8px;}
-  #msarequest .chips{display:flex;flex-wrap:wrap;gap:8px;}
-  #msarequest .chip{position:relative;display:inline-block;margin:0;}
-  #msarequest .chip input{position:absolute;opacity:0;width:1px;height:1px;margin:0;}
-  #msarequest .chip span{display:inline-block;padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
+  #request .msa-form select option{background:#0b0f17;color:var(--ink);}
+  #request .msa-form textarea{min-height:120px;resize:vertical;}
+  #request .msa-form input:focus, #request .msa-form select:focus, #request .msa-form textarea:focus{outline:none;border-color:var(--knicks-blue);box-shadow:var(--focus);}
+  #request .msa-form [aria-invalid="true"]{border-color:#ff8a80;}
+  #request .msa-form .err{color:#ff8a80;font-size:14px;}
+  #request .msa-form .err:empty{display:none;}
+  #request .msa-form .divider{display:flex;align-items:center;gap:12px;margin:10px 0 18px;color:var(--muted);font-size:14px;}
+  #request .msa-form .divider::before, #request .msa-form .divider::after{content:"";flex:1;height:1px;background:var(--stroke);}
+  #request .msa-form fieldset{border:0;padding:0;margin:0 0 16px;min-width:0;}
+  #request .msa-form legend{padding:0;margin-bottom:8px;}
+  #request .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  #request .chip{position:relative;display:inline-block;margin:0;}
+  #request .chip input{position:absolute;opacity:0;width:1px;height:1px;margin:0;}
+  #request .chip span{display:inline-block;padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
     background:rgba(5,8,13,.6);color:var(--ink);font-size:14px;font-weight:400;cursor:pointer;user-select:none;transition:.15s ease;}
-  #msarequest .chip span:hover{border-color:rgba(245,132,38,.5);}
-  #msarequest .chip input:checked + span{background:rgba(0,107,182,.28);border-color:var(--knicks-blue);color:#fff;}
-  #msarequest .chip input:checked + span::before{content:"✓ ";}
-  #msarequest .chip input:focus-visible + span{box-shadow:var(--focus);}
-  #msarequest .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;}
-  #msarequest .form-alert{display:none;margin:0 0 18px;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,138,128,.5);background:rgba(255,138,128,.08);color:#ffd2cd;}
-  #msarequest .form-alert.show{display:block;}
-  #msarequest .privacy{font-size:13px;color:var(--muted);margin:14px 0 0;}
-  #msarequest .spinner{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border-radius:50%;
+  #request .chip span:hover{border-color:rgba(245,132,38,.5);}
+  #request .chip input:checked + span{background:rgba(0,107,182,.28);border-color:var(--knicks-blue);color:#fff;}
+  #request .chip input:checked + span::before{content:"✓ ";}
+  #request .chip input:focus-visible + span{box-shadow:var(--focus);}
+  #request .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;}
+  #request .form-alert{display:none;margin:0 0 18px;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,138,128,.5);background:rgba(255,138,128,.08);color:#ffd2cd;}
+  #request .form-alert.show{display:block;}
+  #request .privacy{font-size:13px;color:var(--muted);margin:14px 0 0;}
+  #request .spinner{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border-radius:50%;
     border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:msa-spin .8s linear infinite;}
   @keyframes msa-spin{to{transform:rotate(360deg);}}
 
-  #msarequest .thanks{max-width:720px;margin:0 auto;text-align:center;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
+  #request .thanks{max-width:720px;margin:0 auto;text-align:center;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
     border:1px solid rgba(245,132,38,.45);border-radius:16px;padding:40px 30px;box-shadow:var(--shadow);}
-  #msarequest .thanks .check{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;
+  #request .thanks .check{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;
     background:rgba(0,107,182,.18);border:1px solid rgba(0,107,182,.6);}
-  #msarequest .thanks .check svg{width:30px;height:30px;stroke:#5fb4ff;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;}
-  #msarequest .thanks h2{margin:0 0 14px;letter-spacing:-.02em;}
-  #msarequest .thanks h2:focus{outline:none;}
-  #msarequest .thanks p{margin:0 auto 12px;max-width:560px;}
-  #msarequest .thanks .muted{color:var(--muted);}
-  #msarequest .thanks .countdown{margin:22px 0 18px;font-weight:600;color:var(--knicks-orange);font-variant-numeric:tabular-nums;}
+  #request .thanks .check svg{width:30px;height:30px;stroke:#5fb4ff;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  #request .thanks h2{margin:0 0 14px;letter-spacing:-.02em;}
+  #request .thanks h2:focus{outline:none;}
+  #request .thanks p{margin:0 auto 12px;max-width:560px;}
+  #request .thanks .muted{color:var(--muted);}
+  #request .thanks .countdown{margin:22px 0 18px;font-weight:600;color:var(--knicks-orange);font-variant-numeric:tabular-nums;}
 
   @media (max-width:760px){
-    #msarequest .msa-form .row, #msarequest .msa-form .row.three{grid-template-columns:1fr;gap:0;}
+    #request .msa-form .row, #request .msa-form .row.three{grid-template-columns:1fr;gap:0;}
   }
   @media (max-width:640px){
-    #msarequest .msa-lede{font-size:17px;}
-    #msarequest .form-card{padding:22px 18px;}
-    #msarequest .thanks{padding:32px 20px;}
-    #msarequest .msa-submit{display:block;width:100%;}
+    #request .msa-lede{font-size:17px;}
+    #request .form-card{padding:22px 18px;}
+    #request .thanks{padding:32px 20px;}
+    #request .msa-submit{display:block;width:100%;}
   }
 </style>
 
-<section id="msarequest" class="section<?= $open ? ' is-open' : '' ?>" aria-label="MSA Vegas 2026 consultation request">
+<section id="request" class="section<?= $open ? ' is-open' : '' ?>" aria-label="MSA Vegas 2026 consultation request">
   <div id="msa-wrap"<?= $thanksName !== null ? ' hidden' : '' ?>>
     <div class="msa-intro">
       <p class="msa-kicker">MSA Vegas 2026</p>
@@ -544,15 +544,16 @@ function msa_render_section(): void {
 
 <script>
 (function(){
-  var section = document.getElementById('msarequest');
+  var section = document.getElementById('request');
   if (!section) return;
 
-  /* Show the section for #msarequest links, and keep it open once shown.
+  /* Show the section for #request links, and keep it open once shown.
      It is the first thing on the page, so "scroll to it" means the top of the page:
      the browser's own jump would tuck it under the sticky header. */
   function toTop(){ window.scrollTo(0, 0); }
   function openIfTargeted(){
-    if (location.hash === '#msarequest'){ section.classList.add('is-open'); return true; }
+    // #msarequest was the address before; keep it working for anything already shared.
+    if (location.hash === '#request' || location.hash === '#msarequest'){ section.classList.add('is-open'); return true; }
     return false;
   }
   if (openIfTargeted()){
@@ -701,12 +702,12 @@ if (!defined('MSA_EMBED')) {
     // so a refresh can't send it twice.
     if ($res['ok']) $_SESSION['msa_thanks'] = $res['firstName'];
     else $_SESSION['msa_flash'] = ['message' => $res['message'], 'errors' => $res['errors'] ?? [], 'data' => $res['data'] ?? []];
-    header('Location: /#msarequest', true, 303);
+    header('Location: /#request', true, 303);
     exit;
   }
   // Old links and QR codes to /msa2026 land on the homepage form.
   $src = strtolower((string)($_GET['src'] ?? ''));
   $query = preg_match('/^[a-z0-9_-]{1,40}$/', $src) ? '?src=' . $src : '';
-  header('Location: /' . $query . '#msarequest', true, 302);
+  header('Location: /' . $query . '#request', true, 302);
   exit;
 }

@@ -4,7 +4,7 @@ $a = random_int(2,9);
 $b = random_int(2,9);
 $_SESSION['captcha_answer'] = (string)($a + $b);
 $_SESSION['csrf'] = bin2hex(random_bytes(16));
-/* MSA Vegas 2026 consultation form: shown only at rodrikconsulting.com/#msarequest */
+/* MSA Vegas 2026 consultation form: shown only at rodrikconsulting.com/#request */
 define('MSA_EMBED', true);
 if (is_file(__DIR__ . '/msa2026/index.php')) require_once __DIR__ . '/msa2026/index.php';
 ?>
