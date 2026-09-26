@@ -313,6 +313,7 @@ $_SESSION['csrf'] = bin2hex(random_bytes(16));
     }
     #philosophy,
     #solutions,
+    #applications,
     #work,
     #field-slideshow,
     #community{
@@ -410,6 +411,66 @@ $_SESSION['csrf'] = bin2hex(random_bytes(16));
       }
     }
 
+    /* APPLICATIONS (links to apps.rodrikconsulting.com) */
+    #applications .apps-showcase{
+      display:grid;
+      grid-template-columns:200px 1fr;
+      gap:36px;
+      align-items:center;
+      margin-top:22px;
+      padding:32px;
+      border:1px solid rgba(245,132,38,.38);
+      border-radius:16px;
+      background:
+        radial-gradient(circle at 12% 30%, rgba(0,107,182,.18), transparent 45%),
+        linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
+      box-shadow:var(--shadow);
+    }
+    #applications .apps-medallion{
+      width:170px;height:170px;border-radius:50%;margin:0 auto;
+      background:url('https://apps.rodrikconsulting.com/coin.webp') center / 74% no-repeat,
+                 radial-gradient(circle at 35% 30%, #ffffff 0%, #eef1f6 70%, #dfe4ec 100%);
+      box-shadow:inset 0 0 0 4px rgba(245,132,38,.55), inset 0 0 0 9px #fff, 0 18px 40px rgba(0,0,0,.5);
+    }
+    #applications .apps-list{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin:0 0 22px;
+      padding:0;
+      list-style:none;
+    }
+    #applications .apps-list a{
+      display:block;height:100%;box-sizing:border-box;
+      padding:14px 16px 14px 36px;
+      position:relative;
+      border:1px solid var(--stroke);
+      border-radius:12px;
+      background:rgba(255,255,255,.025);
+      color:var(--ink);
+      transition:border-color .18s ease,background .18s ease;
+    }
+    #applications .apps-list a:hover{border-color:rgba(245,132,38,.45);background:rgba(255,255,255,.05);text-decoration:none;}
+    #applications .apps-list a::before{
+      content:"";position:absolute;left:15px;top:20px;
+      width:10px;height:10px;border-radius:50%;background:var(--dot,var(--knicks-orange));
+    }
+    #applications .apps-list strong{display:block;font-size:16px;}
+    #applications .apps-list span{display:block;font-size:13px;color:var(--muted);margin-top:2px;}
+    #applications .apps-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+    #applications .apps-cta .btn{padding:12px 20px;}
+    #applications .apps-cta .note{font-size:13px;color:var(--muted);}
+    @media (max-width:900px){
+      #applications .apps-showcase{grid-template-columns:1fr;text-align:center;padding:26px 20px;gap:22px;}
+      #applications .apps-medallion{width:120px;height:120px;}
+      #applications .apps-list{text-align:left;}
+      #applications .apps-cta{justify-content:center;}
+    }
+    @media (max-width:560px){
+      #applications .apps-list{grid-template-columns:1fr;}
+      #applications .apps-cta .btn{display:block;width:100%;text-align:center;}
+    }
+
     /* Utility */
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
   </style>
@@ -432,6 +493,7 @@ $_SESSION['csrf'] = bin2hex(random_bytes(16));
       <a href="#solutions" data-en="Solutions" data-es="Soluciones">Solutions</a>
       <a href="#work" data-en="Work" data-es="Trabajo">Work</a>
       <a href="#framework" data-en="FLAME" data-es="FLAME">FLAME</a>
+      <a href="https://apps.rodrikconsulting.com/" data-en="Apps" data-es="Apps">Apps</a>
         <a href="/team.php" data-en="Team" data-es="Equipo">Team</a>
       <a href="#contact" class="btn">Contact</a>
       <span class="lang-switcher"><button class="lang-en active" aria-label="English">EN</button><span class="lang-divider"></span><button class="lang-es" aria-label="Español">ES</button></span>
@@ -443,6 +505,7 @@ $_SESSION['csrf'] = bin2hex(random_bytes(16));
     <a href="#solutions">Solutions</a>
     <a href="#work">Work</a>
     <a href="#framework">FLAME</a>
+    <a href="https://apps.rodrikconsulting.com/">Apps</a>
     <a href="/team.php">Team</a>
     <a href="#contact" class="btn">Contact</a>
     <span class="lang-switcher"><button class="lang-en active" aria-label="English">EN</button><span class="lang-divider"></span><button class="lang-es" aria-label="Español">ES</button></span>
@@ -564,6 +627,28 @@ $_SESSION['csrf'] = bin2hex(random_bytes(16));
       <article class="card reveal"><h3 data-en="Align" data-es="Alinear">Align</h3><p data-en="Connect business goals, stakeholders, decision rights, metrics, governance, and technology direction." data-es="Conectar objetivos de negocio, partes interesadas, derechos de decisión, métricas, gobernanza y dirección tecnológica.">Connect business goals, stakeholders, decision rights, metrics, governance, and technology direction.</p></article>
       <article class="card reveal"><h3 data-en="Execute" data-es="Ejecutar">Execute</h3><p data-en="Deliver practical roadmaps, dashboards, governance models, processes, and training that teams can use." data-es="Entregar hojas de ruta prácticas, tableros, modelos de gobernanza, procesos y capacitación que los equipos puedan utilizar.">Deliver practical roadmaps, dashboards, governance models, processes, and training that teams can use.</p></article>
       <article class="card reveal"><h3 data-en="Sustain" data-es="Sostener">Sustain</h3><p data-en="Build leadership rhythms, accountability structures, and capability so improvements continue after launch." data-es="Construir ritmos de liderazgo, estructuras de responsabilidad y capacidad para que las mejoras continúen después del lanzamiento.">Build leadership rhythms, accountability structures, and capability so improvements continue after launch.</p></article>
+    </div>
+  </section>
+
+  <!-- APPLICATIONS -->
+  <section id="applications" class="section">
+    <h2 class="reveal" data-en="Explore What We're Building" data-es="Descubra Lo Que Estamos Construyendo">Explore What We're Building</h2>
+    <p class="section-lede reveal" style="color:var(--muted)"><span data-en="From AI-powered tools to innovative digital platforms, we're developing practical applications that bring ideas to life. Explore our projects and see how technology, data, and intelligent automation can create new possibilities." data-es="Desde herramientas impulsadas por IA hasta plataformas digitales innovadoras, desarrollamos aplicaciones prácticas que dan vida a las ideas. Explore nuestros proyectos y descubra cómo la tecnología, los datos y la automatización inteligente pueden crear nuevas posibilidades.">From AI-powered tools to innovative digital platforms, we're developing practical applications that bring ideas to life. Explore our projects and see how technology, data, and intelligent automation can create new possibilities.</span></p>
+
+    <div class="apps-showcase reveal">
+      <div class="apps-medallion" aria-hidden="true"></div>
+      <div>
+        <ul class="apps-list">
+          <li><a href="https://apps.rodrikconsulting.com/#rodiq" style="--dot:#8f7bff"><strong>RodIQ</strong><span data-en="Personalized SAT &amp; ACT prep" data-es="Preparación personalizada SAT y ACT">Personalized SAT &amp; ACT prep</span></a></li>
+          <li><a href="https://apps.rodrikconsulting.com/#flame" style="--dot:#ff7a3d"><strong>FLAME Decision Audit</strong><span data-en="AI-powered decision audits for leaders" data-es="Auditorías de decisiones con IA para líderes">AI-powered decision audits for leaders</span></a></li>
+          <li><a href="https://apps.rodrikconsulting.com/#blocky" style="--dot:#FFC23D"><strong>Blocky Market</strong><span data-en="Call the next move: crypto, sports &amp; AI bots" data-es="Anticipe el próximo movimiento: cripto, deportes y bots de IA">Call the next move: crypto, sports &amp; AI bots</span></a></li>
+          <li><a href="https://apps.rodrikconsulting.com/#fantasy-coach-live" style="--dot:#9b5cff"><strong>Fantasy Coach Live</strong><span data-en="Live coaching for fantasy football" data-es="Asesoría en vivo para fútbol americano de fantasía">Live coaching for fantasy football</span></a></li>
+        </ul>
+        <div class="apps-cta">
+          <a class="btn" href="https://apps.rodrikconsulting.com/" data-en="Explore Our Applications" data-es="Explorar Nuestras Aplicaciones">Explore Our Applications</a>
+          <span class="note" data-en="More on the way." data-es="Más en camino.">More on the way.</span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1085,6 +1170,7 @@ $_SESSION['csrf'] = bin2hex(random_bytes(16));
     <nav class="foot-links" aria-label="Footer">
       <a href="https://www.amazon.com/dp/B0F4W4V6QK" target="_blank" rel="noopener" data-en="Book" data-es="Libro">Book</a>
       <a href="https://flame.droscarrodriguez.com" target="_blank" rel="noopener" data-en="FLAME Audit" data-es="Auditoría FLAME">FLAME Audit</a>
+      <a href="https://apps.rodrikconsulting.com/" data-en="Apps" data-es="Apps">Apps</a>
       <a href="https://www.droscarrodriguez.com" target="_blank" rel="noopener" data-en="Dr. Rodriguez" data-es="Dr. Rodríguez">Dr. Rodriguez</a>
       <a href="/about.php">About</a>
     </nav>
