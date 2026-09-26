@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
+import { publicAppUrl } from "@/lib/env";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
 const serif = Source_Serif_4({ variable: "--font-serif-display", subsets: ["latin"], display: "swap", weight: ["400", "600", "700"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(publicAppUrl()),
   title: {
     default: "ROHA — Rodrik Organizational Health Assessment",
     template: "%s · ROHA",

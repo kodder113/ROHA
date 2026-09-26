@@ -164,11 +164,13 @@ See `.env.example`. Nothing is hard-coded; secrets are read only on the server.
 
 ## Production deployment
 
+**Production address:** `https://roha.droscarrodriguez.com` (set as `NEXT_PUBLIC_APP_URL`; also the built-in production fallback in `src/lib/brand.ts`, so links never point to localhost).
+
 ### 1. Supabase
 
 1. Create a project. In **Authentication → Providers → Email**, keep *Confirm email* **enabled**.
-2. **Authentication → URL configuration**: Site URL = your domain; add `https://YOUR_DOMAIN/auth/callback` to Redirect URLs.
-3. Configure a production SMTP sender (Authentication → SMTP) so verification/invitation emails are delivered reliably.
+2. **Authentication → URL configuration**: Site URL = `https://roha.droscarrodriguez.com`; add `https://roha.droscarrodriguez.com/auth/callback` to Redirect URLs.
+3. Configure a production SMTP sender (Authentication → SMTP) so verification/invitation emails are delivered reliably, for example `no-reply@droscarrodriguez.com`, with the SPF and DKIM records your email provider requires.
 4. Apply migrations: `npx supabase link --project-ref <ref>` then `npx supabase db push`.
 5. (Optional) Load the demonstration organization: `psql "$DATABASE_URL" -f supabase/seed.sql`.
 
@@ -180,16 +182,18 @@ Create an API key at console.anthropic.com and set `ANTHROPIC_API_KEY`. The syst
 
 1. Create two Prices: **ROHA Professional** — one-time **$499**; **ROHA Enterprise** — recurring **$199/month**.
 2. In **Super Admin → Plans**, paste each `price_…` ID into the plan's *Stripe price ID*.
-3. Add a webhook endpoint `https://YOUR_DOMAIN/api/stripe/webhook` for events `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, `customer.subscription.deleted`; set `STRIPE_WEBHOOK_SECRET`.
+3. Add a webhook endpoint `https://roha.droscarrodriguez.com/api/stripe/webhook` for events `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, `customer.subscription.deleted`; set `STRIPE_WEBHOOK_SECRET`.
 4. Enable the Customer Billing Portal in Stripe settings (used by *Manage billing*).
 
 ROHA never receives or stores card data; only Stripe identifiers are kept.
 
 ### 4. Hosting (Vercel recommended)
 
-1. Import the repository, set all environment variables for Production.
-2. `vercel.json` schedules the daily retention job; set `CRON_SECRET` (Vercel sends it as a Bearer token).
-3. Deploy, then sign up with an email listed in `ROHA_PLATFORM_ADMIN_EMAILS` to access `/admin`.
+1. Import the repository, set all environment variables for Production, including `NEXT_PUBLIC_APP_URL=https://roha.droscarrodriguez.com`.
+2. **Custom domain:** in Vercel → Project → Settings → Domains, add `roha.droscarrodriguez.com`. At the DNS provider for `droscarrodriguez.com`, create the record Vercel shows (normally a **CNAME** named `roha` pointing to `cname.vercel-dns.com`). Vercel issues the HTTPS certificate automatically once DNS resolves.
+3. `vercel.json` schedules the daily retention job; set `CRON_SECRET` (Vercel sends it as a Bearer token).
+4. Deploy, then sign up with an email listed in `ROHA_PLATFORM_ADMIN_EMAILS` to access `/admin`.
+5. After the domain is live, check: `https://roha.droscarrodriguez.com` loads over HTTPS; sign-up verification emails link back to this domain; a survey link starts with `https://roha.droscarrodriguez.com/s/`; the Stripe webhook shows successful deliveries.
 
 ### 5. Before launch
 

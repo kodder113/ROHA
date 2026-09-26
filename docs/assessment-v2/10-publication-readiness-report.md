@@ -54,6 +54,7 @@ Nothing below has been tested in production. All code paths have been exercised 
 | C4 | Stripe live mode | Live keys, webhook secret and prices; one real checkout, renewal and cancellation | **Outstanding** |
 | C5 | Application secrets | `ROHA_TOKEN_SECRET`, `CRON_SECRET`, `ROHA_PLATFORM_ADMIN_EMAILS` | **Outstanding** |
 | C6 | Deployment | App deployed; `NEXT_PUBLIC_APP_URL` set; retention cron running; error log reviewed | **Outstanding** |
+| C6a | Custom domain | `roha.droscarrodriguez.com`: add it in the hosting provider, create the DNS record (normally a CNAME `roha` → `cname.vercel-dns.com`), set `NEXT_PUBLIC_APP_URL`, Supabase Site URL and redirect URL, Stripe webhook URL (README, Production deployment) | **Outstanding** |
 | C7 | CI on the deployed commit | GitHub Actions passes | Pending on the final push |
 | C8 | Production deployment tests | End-to-end smoke test on production (or a staging copy): registration, survey, close, results, report, PDF, billing. Then the Version 2 release steps below | **Outstanding** |
 

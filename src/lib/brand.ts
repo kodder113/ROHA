@@ -6,6 +6,8 @@ export const BRAND = {
   secondaryTagline: "Powered by AI. Grounded in Strategic Leadership.",
   company: "Rodrik Consulting LLC",
   companyUrl: "https://rodrikconsulting.com",
+  /** Production address of the ROHA application. */
+  appUrl: "https://roha.droscarrodriguez.com",
   founder: "Dr. Oscar A. Rodriguez, DSL",
   founderName: "Dr. Oscar A. Rodriguez",
   founderCredential: "Doctor of Strategic Leadership (DSL)",

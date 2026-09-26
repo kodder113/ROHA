@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
+import { publicAppUrl } from "@/lib/env";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const base = publicAppUrl();
   return ["", "/how-it-works", "/framework", "/features", "/pricing", "/about", "/contact", "/privacy", "/terms", "/demo", "/get-started"].map((p) => ({
     url: `${base}${p}`,
     changeFrequency: "monthly",

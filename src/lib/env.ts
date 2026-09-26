@@ -3,6 +3,19 @@
  * values prefixed NEXT_PUBLIC_ are safe to expose to the browser.
  */
 
+import { BRAND } from "./brand";
+
+/**
+ * Public base URL of the application (auth redirects, survey links, Stripe
+ * return URLs, sitemap). NEXT_PUBLIC_APP_URL wins; in production the ROHA
+ * domain is the fallback so links never point to localhost.
+ */
+export function publicAppUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const url = configured || (process.env.NODE_ENV === "production" ? BRAND.appUrl : "http://localhost:3000");
+  return url.replace(/\/$/, "");
+}
+
 export class ConfigurationError extends Error {
   constructor(public readonly variable: string, purpose: string) {
     super(`${variable} is not configured. ${purpose}`);
@@ -28,7 +41,7 @@ export const publicEnv = {
     read("NEXT_PUBLIC_SUPABASE_ANON_KEY") ??
     read("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ??
     required("NEXT_PUBLIC_SUPABASE_ANON_KEY", "Set it to your Supabase anon/publishable key."),
-  appUrl: () => (read("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3000").replace(/\/$/, ""),
+  appUrl: () => publicAppUrl(),
 };
 
 export const serverEnv = {
