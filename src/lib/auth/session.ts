@@ -56,7 +56,14 @@ export const isPlatformAdmin = cache(async (): Promise<boolean> => {
   if (!user) return false;
   const supabase = await createClient();
   const { data } = await supabase.rpc("is_platform_admin");
-  return data === true;
+  if (data === true) return true;
+  // Bootstrap: verified users listed in ROHA_PLATFORM_ADMIN_EMAILS become super-admins.
+  const email = user.email?.toLowerCase();
+  if (user.email_confirmed_at && email && serverEnv.platformAdminEmails().includes(email)) {
+    await completeAccountSetup(user);
+    return true;
+  }
+  return false;
 });
 
 /**

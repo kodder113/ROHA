@@ -210,6 +210,11 @@ async function getOrComputeResults(campaign: Campaign, force = false): Promise<R
       .eq("scoring_rule_version_id", campaign.scoring_rule_version_id)
       .maybeSingle();
     if (data && data.engine_version === ENGINE_VERSION) return data.payload as unknown as ResultsPayload;
+    if (data) {
+      // Raw responses may have been purged under the retention policy; keep the frozen aggregates.
+      const { count } = await admin.from("responses").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id);
+      if (!count) return data.payload as unknown as ResultsPayload;
+    }
   }
   const payload = await computeResultsPayload(campaign);
   const { error } = await admin.from("aggregated_results").upsert(
