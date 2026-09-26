@@ -304,7 +304,15 @@ function Participation({ snapshot, registry }: SectionProps) {
       />
       <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: COLORS.navy, borderBottomWidth: 0.6, borderBottomColor: COLORS.rule, paddingVertical: 10, marginBottom: 12 }} wrap={false}>
         <KeyFigure label="Responses submitted" value={fmtInt(p.responses)} />
-        <KeyFigure label="Valid responses" value={fmtInt(p.validResponses)} sub="Included in scoring" />
+        {p.partialResponses !== undefined ? (
+          <KeyFigure
+            label="In overall index"
+            value={fmtInt(p.validResponses)}
+            sub={p.partialResponses > 0 ? `+${fmtInt(p.partialResponses)} in some dimensions only` : "Counted in every dimension"}
+          />
+        ) : (
+          <KeyFigure label="Valid responses" value={fmtInt(p.validResponses)} sub="Included in scoring" />
+        )}
         <KeyFigure label="Expected participants" value={fmtInt(p.expected)} />
         <KeyFigure label="Participation rate" value={fmtPercent(p.ratePercent)} accent={COLORS.emerald} />
       </View>
