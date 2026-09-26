@@ -61,7 +61,7 @@ export default function HowItWorksPage() {
       <PageHero
         eyebrow="How ROHA Works"
         title="A disciplined path from employee perspective to executive decision."
-        description="ROHA is designed to be simple for employees, rigorous in how it calculates results, and transparent about how data is protected. Here is exactly what happens, step by step."
+        description="ROHA is designed to be simple for employees, consistent in how it calculates results, and transparent about how data is protected. Here is exactly what happens, step by step."
       />
 
       <Section aria-labelledby="steps-heading">

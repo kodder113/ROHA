@@ -180,7 +180,7 @@ const sections: LegalSection[] = [
     body: (
       <>
         <p>
-          ROHA is an independently developed organizational diagnostic. <strong>It has not been scientifically or psychometrically
+          ROHA is an independently developed organizational health assessment in its initial release. <strong>It has not been scientifically or psychometrically
           validated</strong>, and it is not a clinical, diagnostic or psychometric instrument. Scores describe the perceptions of the
           participants who responded; they are not measurements of organizational effectiveness and do not establish productivity,
           retention, financial performance or any other outcome. Descriptive interpretation bands are interpretive aids, not validated

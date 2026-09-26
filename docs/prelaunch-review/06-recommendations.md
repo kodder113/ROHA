@@ -1,5 +1,7 @@
 # 6. Recommendations and Proposed Version-2 Draft Wording
 
+> **Update:** the wording proposals in section 6.2 are superseded by the owner-directed Version 2 draft in [`docs/assessment-v2/`](../assessment-v2/README.md). Recommendation R6 (remove "evidence-based") has been applied there.
+
 **Status: proposals only.** Nothing here has been applied. Assessment version 1 remains published and unchanged. Because no production data has been collected, an accepted revision can be published as **version 2 before launch**, and version 1 would then never be used for a client campaign. The platform keeps version 1 intact for audit.
 
 ## 6.1 Prioritized recommendations

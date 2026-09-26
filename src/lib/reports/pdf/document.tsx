@@ -861,7 +861,7 @@ function About({ reportId, generator, model, generatedAt, snapshot, registry }: 
         </View>
       </View>
       <Text style={styles.paragraph}>
-        {`${BRAND.company} developed ROHA — the ${BRAND.productFull} — to give leadership teams a clear, evidence-based view of how their organization is experienced by the people who work in it, and of the organization those people want it to become.`}
+        {`${BRAND.company} developed ROHA — the ${BRAND.productFull} — to give leadership teams a clear, structured view of how their organization is experienced by the people who work in it, and of the organization those people want it to become.`}
       </Text>
       <SubHeading>Founder</SubHeading>
       <Text style={styles.paragraph}>

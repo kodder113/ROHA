@@ -5,7 +5,7 @@
 
 ROHA is a multi-tenant SaaS platform owned and operated by **Rodrik Consulting LLC** (founded by Dr. Oscar A. Rodriguez, DSL — <https://rodrikconsulting.com>). Organizations register, run confidential employee assessments, and receive privacy-screened executive dashboards, AI-assisted executive intelligence reports and a consulting-grade PDF.
 
-> ROHA is an independently developed diagnostic. It does not reproduce, derive from or claim affiliation with any other assessment instrument (including the OCAI), and it has not been independently validated as a psychometric instrument.
+> ROHA is an independently developed organizational health assessment in its initial release. It does not reproduce, derive from or claim affiliation with any other assessment instrument (including the OCAI). Its dimensions draw on established organizational research concepts, but ROHA's own questions and scoring have not yet been empirically tested for reliability or validity.
 
 ---
 
@@ -22,7 +22,7 @@ ROHA is a multi-tenant SaaS platform owned and operated by **Rodrik Consulting L
 9. [Operations](#operations)
 10. [Known limitations and residual risks](#known-limitations-and-residual-risks)
 
-**Prelaunch intellectual property and methodological independence review:** see [`docs/prelaunch-review/`](docs/prelaunch-review/README.md).
+**Prelaunch intellectual property and methodological independence review:** see [`docs/prelaunch-review/`](docs/prelaunch-review/README.md). **Assessment Version 2 (draft, not published):** see [`docs/assessment-v2/`](docs/assessment-v2/README.md).
 
 ---
 

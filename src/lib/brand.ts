@@ -11,5 +11,5 @@ export const BRAND = {
   founderCredential: "Doctor of Strategic Leadership (DSL)",
   surveyWelcome: "Your perspective matters. Help your organization understand what is working and what can be improved.",
   independenceStatement:
-    "ROHA is an independently developed organizational diagnostic created by Rodrik Consulting LLC. It is not affiliated with, endorsed by, or derived from any other assessment instrument, and it has not been independently validated as a psychometric instrument.",
+    "ROHA is an organizational health assessment developed independently by Rodrik Consulting LLC. It is not affiliated with, endorsed by, or derived from any other assessment instrument. ROHA is in its initial release: its dimensions draw on concepts that are well established in organizational research, but ROHA's own questions and scoring have not yet been empirically tested for reliability or validity.",
 } as const;
