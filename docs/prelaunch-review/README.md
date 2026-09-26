@@ -1,9 +1,9 @@
 # ROHA Prelaunch Review — Intellectual Property and Methodological Independence
 
-**Prepared for:** Rodrik Consulting LLC — for review by (a) intellectual property counsel and (b) an organizational research / psychometrics specialist
-**Subject:** ROHA — Rodrik Organizational Health Assessment, assessment version 1, scoring rules version 1
-**Review date:** September 26, 2026
-**Repository state reviewed:** branch `claude/build-roha-saas-w95xsg`, commit `1b2751a` (assessment content introduced in commit `b76d5fa`)
+- **Prepared for:** Rodrik Consulting LLC — for review by (a) intellectual property counsel and (b) an organizational research / psychometrics specialist
+- **Subject:** ROHA — Rodrik Organizational Health Assessment, assessment version 1, scoring rules version 1
+- **Review date:** September 26, 2026
+- **Repository state reviewed:** branch `claude/build-roha-saas-w95xsg`, commit `1b2751a` (assessment content introduced in commit `b76d5fa`)
 
 > **Important limitations of this review.** This package is a technical and methodological review prepared to support professional advice. It is **not legal advice** and does **not** establish that ROHA is legally cleared, free of infringement, or registrable. It does **not** establish that ROHA is scientifically or psychometrically validated. Comparisons with third-party instruments below are made from their publicly described structure and from recollection of widely published items; the reviewer did **not** have licensed copies of those instruments. Counsel and the research specialist should verify every comparison against authoritative sources before relying on it.
 
