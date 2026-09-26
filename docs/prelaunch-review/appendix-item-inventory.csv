@@ -1,0 +1,25 @@
+assessment_version,version_status,dimension_code,dimension,item_key,focus_label,item_text,not_applicable_allowed,ip_concern,ocai_item_resemblance
+1,published,LE,Leadership Effectiveness,LE1,Leadership integrity and trust,I trust senior leaders to be honest with employees.,f,Low,None
+1,published,LE,Leadership Effectiveness,LE2,Clarity of organizational direction,Leadership has communicated a clear direction for where the organization is heading.,f,Low,None
+1,published,LE,Leadership Effectiveness,LE3,Management accountability and consistency,Managers are held to the same standards of accountability as the people they lead.,t,Low,None
+1,published,LE,Leadership Effectiveness,LE4,Confidence in leadership decisions,I have confidence in the decisions made by leadership.,f,Low,None
+1,published,OC,Organizational Culture,OC1,Collaboration and teamwork,People here work together effectively to accomplish shared goals.,f,Low,None
+1,published,OC,Organizational Culture,OC2,Respect and inclusion,Employees are treated as valued members of the organization regardless of their background or position.,f,Low,None
+1,published,OC,Organizational Culture,OC3,Psychological safety,I can speak up about problems or concerns without fear of negative consequences.,f,Low,None
+1,published,OC,Organizational Culture,OC4,Values and behavior alignment,The way people actually behave here reflects the organization's stated values.,f,Low,None
+1,published,EE,Employee Engagement,EE1,Sense of purpose,My work gives me a sense of purpose.,f,Low,None
+1,published,EE,Employee Engagement,EE2,Recognition and appreciation,I receive meaningful recognition when I do good work.,f,Medium - shared phrasing pattern with a Gallup Q12 item (verify),None
+1,published,EE,Employee Engagement,EE3,Professional development,I have access to opportunities to grow professionally.,f,Medium - shared phrasing pattern with a Gallup Q12 item (verify),None
+1,published,EE,Employee Engagement,EE4,Commitment to the organization,I feel committed to helping this organization succeed.,f,Low,None
+1,published,OE,Operational Effectiveness,OE1,Process efficiency,Our work processes allow tasks to be completed without unnecessary steps or delays.,f,Low,None
+1,published,OE,Operational Effectiveness,OE2,Tools and technology,I have the tools and technology I need to do my job well.,f,Medium - shared phrasing pattern with a Gallup Q12 item (verify),None
+1,published,OE,Operational Effectiveness,OE3,Interdepartmental coordination,Departments coordinate effectively when work depends on more than one team.,t,Low,None
+1,published,OE,Operational Effectiveness,OE4,Clarity of responsibilities and procedures,It is clear who is responsible for each part of the work I am involved in.,f,Low,None
+1,published,IA,Innovation and Adaptability,IA1,Openness to new ideas,"New ideas are welcomed here, even when they challenge established ways of working.",f,Low,None
+1,published,IA,Innovation and Adaptability,IA2,Responsiveness to change,The organization adapts effectively when circumstances change.,t,Low,None
+1,published,IA,Innovation and Adaptability,IA3,Improving inefficient processes,"When a process is not working well, the organization takes action to improve it.",f,Low,None
+1,published,IA,Innovation and Adaptability,IA4,Support for employee-driven innovation,Employees receive the support they need to try out their ideas for improvement.,t,Low,None
+1,published,SA,Strategic Alignment,SA1,Understanding of organizational goals,I understand the organization's most important goals.,f,Low,None
+1,published,SA,Strategic Alignment,SA2,Alignment of daily work with objectives,My day-to-day work directly supports the organization's business objectives.,f,Low,None
+1,published,SA,Strategic Alignment,SA3,Communication of strategic priorities,Strategic priorities are communicated to employees on a regular basis.,f,Low,None
+1,published,SA,Strategic Alignment,SA4,Understanding of individual contribution,I understand how my individual contributions affect the organization's success.,f,Low,None

@@ -22,6 +22,8 @@ ROHA is a multi-tenant SaaS platform owned and operated by **Rodrik Consulting L
 9. [Operations](#operations)
 10. [Known limitations and residual risks](#known-limitations-and-residual-risks)
 
+**Prelaunch intellectual property and methodological independence review:** see [`docs/prelaunch-review/`](docs/prelaunch-review/README.md).
+
 ---
 
 ## What's included
