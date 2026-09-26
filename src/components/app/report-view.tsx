@@ -86,7 +86,7 @@ export function ReportView({ report, snapshot }: { report: ExecutiveReport; snap
         <StatTile label="Desired health index" value={formatScore(snapshot.overall.desiredIndex)} />
         <StatTile label="Organizational gap" value={formatGap(snapshot.overall.gap)} hint="Desired minus current" />
         <StatTile
-          label="Valid responses"
+          label={snapshot.participation.partialResponses !== undefined ? "In overall index" : "Valid responses"}
           value={snapshot.participation.validResponses.toLocaleString()}
           hint={snapshot.participation.ratePercent !== null ? `${formatPercent(snapshot.participation.ratePercent, 1)} participation` : undefined}
         />

@@ -77,6 +77,13 @@ describe("numeric consistency validator", () => {
     expect(warnings.map((w) => w.value)).toEqual(expect.arrayContaining(["137.9", "412"]));
   });
 
+  it("ignores day ranges in action-plan timeframes", () => {
+    const snap = makeSnapshot();
+    const report = generateRulesReport(snap);
+    const ok: ExecutiveReport = { ...report, action_plan: report.action_plan.map((a) => ({ ...a, timeframe: "Days 31-60" })) };
+    expect(findUnsupportedNumbers(ok, snap)).toEqual([]);
+  });
+
   it("ignores item keys, years and plan phases", () => {
     const snap = makeSnapshot();
     const report = generateRulesReport(snap);
@@ -223,6 +230,7 @@ describe("assessment version 2 reporting", () => {
     const snap = makeV2Snapshot();
     const task = buildTask(snap);
     expect(task).toContain("5 dimensions and 25 items");
+    expect(task).toContain("ROHA assessment version 2");
     expect(task).toContain("SI3, SI4, SI5 aspect of Strategic Alignment & Innovation");
     expect(task).toContain("do not calculate or state a separate score");
     const { client, captured } = fakeClient(JSON.stringify(generateRulesReport(snap)));

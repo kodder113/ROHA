@@ -104,7 +104,8 @@ export function ResultsDashboard({ view, features, trend, campaignName, isDemo =
         <DistributionChart result={active} scopeLabel={scopeLabel} />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      {/* Full width: the heatmap needs a column per dimension. */}
+      <div className="grid gap-6">
         <DepartmentComparisonChart
           segments={segments}
           organization={payload.overall}

@@ -63,7 +63,8 @@ export function findUnsupportedNumbers(report: ExecutiveReport, snapshot: Report
   const allowed = collectAllowed(snapshot);
   const warnings: NumericWarning[] = [];
   for (const { path, text } of textFields(report)) {
-    if (path.endsWith("phase") || path.endsWith("dimension_key") || path.endsWith("question_key")) continue;
+    // Keys and plan timing ("Days 31–60") are not statistics.
+    if (path.endsWith("phase") || path.endsWith("dimension_key") || path.endsWith("question_key") || path.endsWith("timeframe")) continue;
     for (const match of text.matchAll(NUMBER)) {
       const raw = match[0].replace(/^[+−-]/, "");
       const value = Number(raw);

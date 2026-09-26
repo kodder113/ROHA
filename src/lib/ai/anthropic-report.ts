@@ -40,7 +40,7 @@ export function buildTask(snapshot: ReportInputSnapshot): string {
     (snapshot.participation.partialResponses
       ? " Some respondents are counted only in the dimensions where they gave enough ratings: dimension scores use each dimension's respondent count, while the overall index uses only participation.validResponses respondents. State this in limitations and never describe the overall index as the average of the dimension scores."
       : "");
-  return `Write the ROHA Executive Organizational Intelligence Report for the organization described in the JSON below. This assessment version has ${snapshot.dimensions.length} dimensions and ${snapshot.items.length} items; refer only to the dimensions and items in the input.
+  return `Write the ROHA Executive Organizational Intelligence Report for the organization described in the JSON below. These results use ROHA assessment version ${snapshot.methodology.assessmentVersion}, which has ${snapshot.dimensions.length} dimensions and ${snapshot.items.length} items; refer only to the dimensions and items in the input. When describing ROHA's development status, say that ROHA is in its initial release and not yet empirically validated; do not describe the assessment version as a release number.
 
 Sections to produce:
 A. executive_summary — 2–4 short paragraphs summarizing the measured current state, the desired state, the largest gaps, participation and key caveats.
