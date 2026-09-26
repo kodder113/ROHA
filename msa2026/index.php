@@ -1,8 +1,9 @@
 <?php
-/* MSA Vegas 2026 landing page: rodrikconsulting.com/msa2026
-   Upload to public_html/msa2026/index.php. Visitors arrive from the brochure and tabletop
-   QR codes, request a consultation, and are sent on to the homepage once their details are saved.
-   Only first name, email and company are required; everything else is optional. */
+/* MSA Vegas 2026 consultation request: rodrikconsulting.com/#msarequest
+   Upload to public_html/msa2026/index.php. The homepage loads this file and shows the form
+   at the top of the page only when the address ends in #msarequest (the brochure and tabletop
+   QR codes). This file also receives the form and saves it, and sends anyone who opens
+   /msa2026 on to /#msarequest. Only first name, email and company are required. */
 
 /* ===== Settings: fill these in before the event ===== */
 // Where new-lead alerts go.
@@ -44,14 +45,10 @@ const MSA_MAX = [
   'website' => 255, 'role' => 150, 'location' => 150, 'challenges' => 5000,
 ];
 
-session_start([
-  'cookie_httponly' => true,
-  'cookie_samesite' => 'Lax',
-  'cookie_secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-]);
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 if (empty($_SESSION['msa_csrf'])) $_SESSION['msa_csrf'] = bin2hex(random_bytes(16));
 
-function h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+function msa_h($s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
 /* Private folder for the SQLite file and logs: next to public_html, so it can't be downloaded. */
 function msa_data_dir(): ?string {
@@ -271,331 +268,147 @@ function msa_handle_post(): array {
   return [200, ['ok' => true, 'firstName' => $d['first_name']]];
 }
 
-/* ===== Request routing ===== */
-$thanksName = null;
-$formError = '';
-$fieldErrors = [];
-$old = [];
 
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
-  [$status, $res] = msa_handle_post();
-  $wantsJson = stripos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false;
-  if ($wantsJson) {
-    unset($res['data']);
-    http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-store');
-    echo json_encode($res);
-    exit;
-  }
-  // Without JavaScript: post, then redirect, so a refresh can't send the form twice.
-  if ($res['ok']) {
-    $_SESSION['msa_thanks'] = $res['firstName'];
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'] ?? '/msa2026/', '?') . '?thanks=1', true, 303);
-    exit;
-  }
-  http_response_code($status);
-  $formError = $res['message'];
-  $fieldErrors = $res['errors'] ?? [];
-  $old = $res['data'] ?? [];
-} elseif (isset($_GET['thanks']) && isset($_SESSION['msa_thanks'])) {
-  $thanksName = $_SESSION['msa_thanks'];
-  unset($_SESSION['msa_thanks']);
-}
-
-$src = strtolower((string)($_GET['src'] ?? ($old['source'] ?? '')));
-$src = preg_match('/^[a-z0-9_-]{1,40}$/', $src) ? $src : '';
-$val = function (string $k) use ($old) { return h($old[$k] ?? ''); };
-$err = function (string $k) use ($fieldErrors) { return $fieldErrors[$k] ?? ''; };
-$ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1;
+/* ===== The homepage section. index.php calls this at the top of <main>. =====
+   Hidden unless the address ends in #msarequest, or the page is showing a result
+   from a submission made without JavaScript. */
+function msa_render_section(): void {
+  $thanksName = $_SESSION['msa_thanks'] ?? null;
+  $flash = $_SESSION['msa_flash'] ?? [];
+  unset($_SESSION['msa_thanks'], $_SESSION['msa_flash']);
+  $formError = $flash['message'] ?? '';
+  $fieldErrors = $flash['errors'] ?? [];
+  $old = $flash['data'] ?? [];
+  $open = $thanksName !== null || $flash;
+  $src = strtolower((string)($_GET['src'] ?? ($old['source'] ?? '')));
+  $src = preg_match('/^[a-z0-9_-]{1,40}$/', $src) ? $src : '';
+  $val = function (string $k) use ($old) { return msa_h($old[$k] ?? ''); };
+  $err = function (string $k) use ($fieldErrors) { return $fieldErrors[$k] ?? ''; };
+  $inv = function (string $k) use ($fieldErrors) { return isset($fieldErrors[$k]) ? ' aria-invalid="true"' : ''; };
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4NHP8GCFDE"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-4NHP8GCFDE');
-  </script>
+<style>
+  #msarequest{display:none;}
+  #msarequest:target, #msarequest.is-open{display:block;}
+  #msarequest{border-bottom:1px solid rgba(245,132,38,.35);
+    background:radial-gradient(circle at 18% 0%, rgba(0,107,182,.16), transparent 40%),
+               radial-gradient(circle at 88% 30%, rgba(245,132,38,.07), transparent 30%),
+               linear-gradient(180deg, #05080d 0%, #08111d 100%);}
+  #msarequest [hidden]{display:none !important;}
+  #msarequest .msa-kicker{display:inline-block;margin:0 0 14px;padding:6px 12px;border-radius:999px;
+    border:1px solid rgba(245,132,38,.5);background:rgba(245,132,38,.08);
+    color:var(--knicks-orange);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;}
+  #msarequest .msa-intro h2{margin:0;max-width:820px;font-size:clamp(30px,4.2vw,46px);line-height:1.08;letter-spacing:-.03em;}
+  #msarequest .msa-lede{margin:16px 0 0;max-width:760px;font-size:18px;color:var(--ink);opacity:.92;}
+  #msarequest .msa-help{display:flex;flex-wrap:wrap;gap:8px 18px;margin:18px 0 0;padding:0;list-style:none;color:var(--muted);font-size:15px;}
+  #msarequest .msa-help li{position:relative;padding-left:18px;}
+  #msarequest .msa-help li::before{content:"";position:absolute;left:0;top:.5em;width:8px;height:8px;border-radius:50%;background:var(--knicks-orange);}
+  #msarequest .msa-note{margin:18px 0 0;color:var(--muted);font-size:15px;}
+  #msarequest .btn-lg{padding:14px 22px;font-size:17px;}
+  #msarequest button.btn{font:inherit;font-weight:600;cursor:pointer;}
+  #msarequest .btn[disabled]{opacity:.65;cursor:progress;transform:none;}
 
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MSA Vegas 2026 — Put AI &amp; Technology to Work | Rodrik Consulting</title>
-  <meta name="description" content="Great to meet you at MSA Vegas. Rodrik Consulting helps businesses put AI, automation, and data to work. Request a consultation in under a minute." />
-  <meta name="robots" content="noindex" />
-  <link rel="canonical" href="https://rodrikconsulting.com/msa2026" />
-  <?php if ($thanksName !== null): ?>
-  <noscript><meta http-equiv="refresh" content="<?= MSA_REDIRECT_SECONDS ?>;url=<?= h(MSA_HOME_URL) ?>"></noscript>
-  <?php endif; ?>
-  <link rel="icon" href="/favicon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/assets/styles.css?v=<?= $ver ?>">
+  #msarequest .form-card{max-width:860px;margin-top:26px;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
+    border:1px solid rgba(245,132,38,.38);border-radius:16px;padding:30px;box-shadow:var(--shadow);}
+  #msarequest .msa-form .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+  #msarequest .msa-form .row.three{grid-template-columns:repeat(3,minmax(0,1fr));}
+  #msarequest .msa-form .field{display:flex;flex-direction:column;gap:6px;margin:0 0 16px;min-width:0;}
+  #msarequest .msa-form .field > span, #msarequest .msa-form legend{font-weight:600;font-size:15px;color:var(--ink);}
+  #msarequest .msa-form .opt{font-weight:400;color:var(--muted);font-size:13px;margin-left:4px;}
+  #msarequest .msa-form .req{color:var(--knicks-orange);margin-left:2px;}
+  #msarequest .msa-form input[type=text], #msarequest .msa-form input[type=email], #msarequest .msa-form input[type=tel],
+  #msarequest .msa-form select, #msarequest .msa-form textarea{
+    width:100%;box-sizing:border-box;margin:0;padding:12px 14px;border-radius:10px;font:inherit;font-size:16px; /* 16px stops iOS zooming in */
+    color:var(--ink);background:rgba(5,8,13,.85);border:1px solid rgba(255,255,255,.16);transition:border-color .15s, box-shadow .15s;}
+  #msarequest .msa-form select{appearance:none;-webkit-appearance:none;padding-right:36px;
+    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:calc(100% - 20px) 52%,calc(100% - 14px) 52%;background-size:6px 6px;background-repeat:no-repeat;}
+  #msarequest .msa-form select option{background:#0b0f17;color:var(--ink);}
+  #msarequest .msa-form textarea{min-height:120px;resize:vertical;}
+  #msarequest .msa-form input:focus, #msarequest .msa-form select:focus, #msarequest .msa-form textarea:focus{outline:none;border-color:var(--knicks-blue);box-shadow:var(--focus);}
+  #msarequest .msa-form [aria-invalid="true"]{border-color:#ff8a80;}
+  #msarequest .msa-form .err{color:#ff8a80;font-size:14px;}
+  #msarequest .msa-form .err:empty{display:none;}
+  #msarequest .msa-form .divider{display:flex;align-items:center;gap:12px;margin:10px 0 18px;color:var(--muted);font-size:14px;}
+  #msarequest .msa-form .divider::before, #msarequest .msa-form .divider::after{content:"";flex:1;height:1px;background:var(--stroke);}
+  #msarequest .msa-form fieldset{border:0;padding:0;margin:0 0 16px;min-width:0;}
+  #msarequest .msa-form legend{padding:0;margin-bottom:8px;}
+  #msarequest .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  #msarequest .chip{position:relative;display:inline-block;margin:0;}
+  #msarequest .chip input{position:absolute;opacity:0;width:1px;height:1px;margin:0;}
+  #msarequest .chip span{display:inline-block;padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
+    background:rgba(5,8,13,.6);color:var(--ink);font-size:14px;font-weight:400;cursor:pointer;user-select:none;transition:.15s ease;}
+  #msarequest .chip span:hover{border-color:rgba(245,132,38,.5);}
+  #msarequest .chip input:checked + span{background:rgba(0,107,182,.28);border-color:var(--knicks-blue);color:#fff;}
+  #msarequest .chip input:checked + span::before{content:"✓ ";}
+  #msarequest .chip input:focus-visible + span{box-shadow:var(--focus);}
+  #msarequest .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;}
+  #msarequest .form-alert{display:none;margin:0 0 18px;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,138,128,.5);background:rgba(255,138,128,.08);color:#ffd2cd;}
+  #msarequest .form-alert.show{display:block;}
+  #msarequest .privacy{font-size:13px;color:var(--muted);margin:14px 0 0;}
+  #msarequest .spinner{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border-radius:50%;
+    border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:msa-spin .8s linear infinite;}
+  @keyframes msa-spin{to{transform:rotate(360deg);}}
 
-  <style>
-    :root{
-      --header-h:72px;
-      --knicks-blue:#006BB6; --knicks-blue-600:#005A98; --knicks-blue-700:#004C82;
-      --knicks-orange:#F58426;
-      --ink:#E8EDF2; --muted:#A7B2BF; --stroke:rgba(255,255,255,.10);
-      --panel:rgba(20,24,33,.9); --shadow:0 10px 30px rgba(0,0,0,.40);
-      --focus:0 0 0 3px rgba(0,107,182,.35);
-      --danger:#ff8a80;
-    }
-    html,body{background:#000;color:var(--ink);}
-    html{scroll-behavior:smooth;}
-    a{color:var(--knicks-blue);text-decoration:none;}
-    a:hover{color:var(--knicks-blue-600);text-decoration:underline;}
-    a:focus-visible,.btn:focus-visible{outline:none;box-shadow:var(--focus);border-radius:8px;}
+  #msarequest .thanks{max-width:720px;margin:0 auto;text-align:center;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
+    border:1px solid rgba(245,132,38,.45);border-radius:16px;padding:40px 30px;box-shadow:var(--shadow);}
+  #msarequest .thanks .check{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(0,107,182,.18);border:1px solid rgba(0,107,182,.6);}
+  #msarequest .thanks .check svg{width:30px;height:30px;stroke:#5fb4ff;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  #msarequest .thanks h2{margin:0 0 14px;letter-spacing:-.02em;}
+  #msarequest .thanks h2:focus{outline:none;}
+  #msarequest .thanks p{margin:0 auto 12px;max-width:560px;}
+  #msarequest .thanks .muted{color:var(--muted);}
+  #msarequest .thanks .countdown{margin:22px 0 18px;font-weight:600;color:var(--knicks-orange);font-variant-numeric:tabular-nums;}
 
-    /* ===== Header (logo only: this page has one job) ===== */
-    .site-header{position:sticky;top:0;z-index:10000;
-      background:linear-gradient(180deg, rgba(11,15,23,.96), rgba(11,15,23,.78) 60%, rgba(11,15,23,0));
-      -webkit-backdrop-filter:saturate(140%) blur(8px);backdrop-filter:saturate(140%) blur(8px);
-      border-bottom:1px solid var(--stroke);}
-    .site-header .container.nav{display:flex;align-items:center;justify-content:space-between;min-height:72px;padding:0 20px;gap:12px;}
-    .site-header .brand{display:flex;align-items:center;flex:0 0 auto;}
-    .site-header .brand{min-width:0;flex:0 1 auto;}
-    .site-header .logo{max-width:100%;height:auto;}
-    .site-header .btn{white-space:nowrap;flex:0 0 auto;}
-    .site-header .lbl-short{display:none;}
-    @media (max-width:480px){ .site-header .lbl-long{display:none;} .site-header .lbl-short{display:inline;} }
+  @media (max-width:760px){
+    #msarequest .msa-form .row, #msarequest .msa-form .row.three{grid-template-columns:1fr;gap:0;}
+  }
+  @media (max-width:640px){
+    #msarequest .msa-lede{font-size:17px;}
+    #msarequest .form-card{padding:22px 18px;}
+    #msarequest .thanks{padding:32px 20px;}
+    #msarequest .msa-submit{display:block;width:100%;}
+  }
+</style>
 
-    /* ===== Shared pieces ===== */
-    .reveal{opacity:0;transform:translateY(16px);transition:opacity .45s ease,transform .45s ease;will-change:opacity,transform;}
-    .reveal.revealed{opacity:1;transform:none;}
-    @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
-    .btn{display:inline-block;padding:10px 16px;border-radius:10px;font-weight:600;background:var(--knicks-blue);color:#fff;border:1px solid transparent;transition:.2s ease;cursor:pointer;font:inherit;font-weight:600;}
-    .btn:hover{background:var(--knicks-blue-600);transform:translateY(-1px);color:#fff;text-decoration:none;}
-    .btn:active{background:var(--knicks-blue-700);transform:none;}
-    .btn.btn-outline{background:transparent;border-color:var(--knicks-blue);color:var(--knicks-blue);}
-    .btn.btn-outline:hover{background:rgba(0,107,182,.12);color:#fff;border-color:var(--knicks-blue-600);}
-    .btn.btn-lg{padding:14px 22px;font-size:17px;}
-    .btn[disabled]{opacity:.65;cursor:progress;transform:none;}
-    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-    [hidden]{display:none !important;}
-
-    /* ===== Page bands (same rhythm as the homepage) ===== */
-    .main.container{max-width:none;padding:0;overflow:hidden;
-      background:radial-gradient(circle at 12% 8%, rgba(0,107,182,.10), transparent 28%),
-                 radial-gradient(circle at 85% 44%, rgba(245,132,38,.06), transparent 24%), #000;}
-    .main > .hero, .main > .section{
-      padding-left:max(44px, calc((100vw - 1120px) / 2 + 20px));
-      padding-right:max(44px, calc((100vw - 1120px) / 2 + 20px));}
-    .main > .section{margin:0;padding-top:60px;padding-bottom:60px;position:relative;border-top:1px solid rgba(255,255,255,.065);
-      scroll-margin-top:calc(var(--header-h) + 8px);}
-    .main > .section > h2{margin:0 0 12px;letter-spacing:-.02em;}
-    .section-lede{max-width:780px;color:var(--muted);}
-    .band-blue{background:radial-gradient(circle at 18% 0%, rgba(0,107,182,.10), transparent 34%), linear-gradient(180deg, #05080d 0%, #08111d 100%);}
-    .band-dark{background:radial-gradient(circle at 82% 20%, rgba(245,132,38,.055), transparent 26%), linear-gradient(180deg, #000 0%, #04070b 100%);}
-
-    /* ===== Hero ===== */
-    .hero{padding-top:64px;padding-bottom:72px;border-bottom:1px solid rgba(255,255,255,.08);
-      background:linear-gradient(90deg, rgba(0,0,0,.9) 0%, rgba(0,0,0,.7) 50%, rgba(0,0,0,.85) 100%),
-                 linear-gradient(180deg, rgba(0,0,0,.10) 0%, rgba(0,0,0,.92) 100%),
-                 url('/assets/photos/banner.png') center/cover no-repeat;}
-    .hero .kicker{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:6px 12px;border-radius:999px;
-      border:1px solid rgba(245,132,38,.5);background:rgba(245,132,38,.08);
-      color:var(--knicks-orange);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;}
-    .hero h1{margin:0;max-width:820px;letter-spacing:-.03em;line-height:1.08;}
-    .hero .lede{margin:18px 0 0;max-width:720px;font-size:18px;color:var(--ink);opacity:.92;}
-    .hero .cta{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
-    .hero .cta-note{color:var(--muted);font-size:14px;}
-
-    /* ===== Help cards ===== */
-    .help-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:24px;}
-    .help-card{background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));border:1px solid rgba(255,255,255,.11);
-      border-radius:16px;padding:22px;box-shadow:var(--shadow);}
-    .help-card .icon{width:52px;height:52px;display:grid;place-items:center;border-radius:14px;margin-bottom:14px;
-      background:linear-gradient(180deg,rgba(25,30,40,.9),rgba(18,22,32,.9));border:1px solid var(--stroke);}
-    .help-card .icon svg{width:26px;height:26px;stroke:var(--knicks-orange);stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;}
-    .help-card h3{margin:0 0 8px;font-size:18px;}
-    .help-card p{margin:0;color:var(--muted);font-size:15px;}
-
-    /* ===== Credibility strip ===== */
-    .why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:22px;}
-    .why div{border-left:3px solid var(--knicks-orange);padding:4px 0 4px 16px;}
-    .why strong{display:block;font-size:20px;margin-bottom:4px;}
-    .why span{color:var(--muted);font-size:15px;}
-
-    /* ===== Form ===== */
-    .form-card{max-width:820px;margin-top:24px;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
-      border:1px solid rgba(245,132,38,.38);border-radius:16px;padding:30px;box-shadow:var(--shadow);}
-    .msa-form .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
-    .msa-form .row.three{grid-template-columns:repeat(3,minmax(0,1fr));}
-    .msa-form .field{display:flex;flex-direction:column;gap:6px;margin:0 0 16px;min-width:0;}
-    .msa-form .field > span, .msa-form legend{font-weight:600;font-size:15px;color:var(--ink);}
-    .msa-form .opt{font-weight:400;color:var(--muted);font-size:13px;margin-left:4px;}
-    .msa-form .req{color:var(--knicks-orange);margin-left:2px;}
-    .msa-form input[type=text], .msa-form input[type=email], .msa-form input[type=tel], .msa-form input[type=url],
-    .msa-form select, .msa-form textarea{
-      width:100%;box-sizing:border-box;padding:12px 14px;border-radius:10px;font:inherit;font-size:16px; /* 16px stops iOS zooming in */
-      color:var(--ink);background:rgba(5,8,13,.85);border:1px solid rgba(255,255,255,.16);transition:border-color .15s, box-shadow .15s;}
-    .msa-form select{appearance:none;-webkit-appearance:none;padding-right:36px;
-      background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-      background-position:calc(100% - 20px) 52%,calc(100% - 14px) 52%;background-size:6px 6px;background-repeat:no-repeat;}
-    .msa-form select option{background:#0b0f17;color:var(--ink);}
-    .msa-form textarea{min-height:120px;resize:vertical;}
-    .msa-form input:focus, .msa-form select:focus, .msa-form textarea:focus{outline:none;border-color:var(--knicks-blue);box-shadow:var(--focus);}
-    .msa-form [aria-invalid="true"]{border-color:var(--danger);}
-    .msa-form .err{color:var(--danger);font-size:14px;min-height:0;}
-    .msa-form .err:empty{display:none;}
-    .msa-form .divider{display:flex;align-items:center;gap:12px;margin:10px 0 18px;color:var(--muted);font-size:14px;}
-    .msa-form .divider::before, .msa-form .divider::after{content:"";flex:1;height:1px;background:var(--stroke);}
-    .msa-form fieldset{border:0;padding:0;margin:0 0 16px;min-width:0;}
-    .msa-form legend{padding:0;margin-bottom:8px;}
-    .chips{display:flex;flex-wrap:wrap;gap:8px;}
-    .chip{position:relative;}
-    .chip input{position:absolute;opacity:0;width:1px;height:1px;}
-    .chip span{display:inline-block;padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.18);
-      background:rgba(5,8,13,.6);color:var(--ink);font-size:14px;cursor:pointer;user-select:none;transition:.15s ease;}
-    .chip span:hover{border-color:rgba(245,132,38,.5);}
-    .chip input:checked + span{background:rgba(0,107,182,.28);border-color:var(--knicks-blue);color:#fff;}
-    .chip input:checked + span::before{content:"✓ ";}
-    .chip input:focus-visible + span{box-shadow:var(--focus);}
-    .hp{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden;}
-    .form-alert{display:none;margin:0 0 18px;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,138,128,.5);background:rgba(255,138,128,.08);color:#ffd2cd;}
-    .form-alert.show{display:block;}
-    .submit-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:6px;}
-    .privacy{font-size:13px;color:var(--muted);margin:14px 0 0;}
-    .spinner{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border-radius:50%;
-      border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .8s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg);}}
-
-    /* ===== Confirmation ===== */
-    .thanks{max-width:720px;margin-top:24px;text-align:center;background:linear-gradient(180deg,rgba(18,25,38,.96),rgba(12,18,29,.96));
-      border:1px solid rgba(245,132,38,.45);border-radius:16px;padding:40px 30px;box-shadow:var(--shadow);}
-    .thanks[hidden]{display:none;}
-    .thanks .check{width:64px;height:64px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;
-      background:rgba(0,107,182,.18);border:1px solid rgba(0,107,182,.6);}
-    .thanks .check svg{width:30px;height:30px;stroke:#5fb4ff;stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;}
-    .thanks h2{margin:0 0 14px;letter-spacing:-.02em;}
-    .thanks h2:focus{outline:none;}
-    .thanks p{margin:0 auto 12px;max-width:560px;}
-    .thanks .muted{color:var(--muted);}
-    .thanks .countdown{margin:22px 0 18px;font-weight:600;color:var(--knicks-orange);font-variant-numeric:tabular-nums;}
-
-    .mini-footer{padding:28px 20px;text-align:center;color:var(--muted);font-size:14px;border-top:1px solid var(--stroke);}
-    .mini-footer a{color:var(--muted);text-decoration:underline;}
-
-    @media (max-width:1000px){ .help-grid{grid-template-columns:repeat(2,minmax(0,1fr));} }
-    @media (max-width:760px){
-      .why{grid-template-columns:1fr;}
-      .msa-form .row, .msa-form .row.three{grid-template-columns:1fr;gap:0;}
-    }
-    @media (max-width:640px){
-      .main > .hero, .main > .section{padding-left:20px;padding-right:20px;}
-      .main > .section{padding-top:48px;padding-bottom:48px;}
-      .hero{padding-top:44px;padding-bottom:52px;}
-      .hero h1{font-size:34px;}
-      .hero .lede{font-size:17px;}
-      .hero .cta .btn{display:block;width:100%;text-align:center;box-sizing:border-box;}
-      .help-grid{grid-template-columns:1fr;}
-      .form-card{padding:22px 18px;}
-      .thanks{padding:32px 20px;}
-      .submit-row .btn{width:100%;}
-      .site-header .btn{padding:8px 12px;font-size:14px;}
-      .site-header .logo{max-height:40px;width:auto;}
-    }
-  </style>
-</head>
-<body>
-
-<header class="site-header">
-  <div class="container nav">
-    <a href="/" class="brand"><img class="logo" src="/assets/Logo_Transparent.png" alt="Rodrik Consulting"></a>
-    <?php if ($thanksName === null): ?><a class="btn" href="#msarequest"><span class="lbl-long">Request a consultation</span><span class="lbl-short">Get in touch</span></a><?php endif; ?>
-  </div>
-</header>
-
-<main class="container main">
-
-  <?php if ($thanksName === null): ?>
-  <section class="hero" id="top">
-    <p class="kicker">MSA Vegas 2026</p>
-    <h1>Put AI and technology to work for your business</h1>
-    <p class="lede">Great to meet you. Rodrik Consulting helps business owners and leaders use AI, automation, and data to save time, make better decisions, and grow, with practical steps rather than hype.</p>
-    <div class="cta">
-      <a class="btn btn-lg" href="#msarequest">Request a consultation</a>
-      <span class="cta-note">Takes under a minute. Only 3 fields are required.</span>
-    </div>
-  </section>
-
-  <section class="section band-dark" id="help">
-    <h2 class="reveal">How we can help</h2>
-    <p class="section-lede reveal">Whether you're just starting with AI or ready to automate and scale, we meet you where your business is today.</p>
-    <div class="help-grid">
-      <article class="help-card reveal">
-        <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></div>
-        <h3>AI strategy &amp; adoption</h3>
-        <p>Find where AI can actually help your business, choose the right tools, and roll them out safely and responsibly.</p>
-      </article>
-      <article class="help-card reveal">
-        <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.6"/><path d="M20 4v4.6h-4.6"/><path d="M20 12a8 8 0 0 1-13.7 5.7L4 15.4"/><path d="M4 20v-4.6h4.6"/></svg></div>
-        <h3>Automation &amp; workflows</h3>
-        <p>Cut repetitive work like intake, scheduling, follow-ups, reporting, and hand-offs between the systems you already use.</p>
-      </article>
-      <article class="help-card reveal">
-        <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
-        <h3>Data &amp; dashboards</h3>
-        <p>Turn scattered spreadsheets and systems into clear dashboards that show what's working and where to act next.</p>
-      </article>
-      <article class="help-card reveal">
-        <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg></div>
-        <h3>Websites, apps &amp; digital tools</h3>
-        <p>Modern websites, customer-facing tools, and custom applications built around how your business really works.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="section band-blue" id="why">
-    <h2 class="reveal">Why Rodrik Consulting</h2>
-    <p class="section-lede reveal">Led by Dr. Oscar A. Rodriguez, DSL: enterprise experience, delivered with the attention of a boutique partner.</p>
-    <div class="why reveal">
-      <div><strong>20+ years</strong><span>Data, analytics, and technology leadership across Citigroup, TD Bank, and Liberty Mutual.</span></div>
-      <div><strong>Doctor of Strategic Leadership</strong><span>Research in governance, ethical decision-making, and organizational transformation.</span></div>
-      <div><strong>Responsible AI, built in</strong><span>Creator of the FLAME AI governance framework and author of <em>Leading With Machines</em>.</span></div>
-    </div>
-  </section>
-  <?php endif; ?>
-
-  <section class="section band-dark" id="msarequest">
-    <?php if ($thanksName === null): ?>
-    <div id="request-intro">
-      <h2>Request a consultation</h2>
-      <p class="section-lede">Share as much or as little as you like. Only your <strong>first name</strong>, <strong>email</strong>, and <strong>company name</strong> are required. Everything else is optional.</p>
+<section id="msarequest" class="section<?= $open ? ' is-open' : '' ?>" aria-label="MSA Vegas 2026 consultation request">
+  <div id="msa-wrap"<?= $thanksName !== null ? ' hidden' : '' ?>>
+    <div class="msa-intro">
+      <p class="msa-kicker">MSA Vegas 2026</p>
+      <h2>Put AI and technology to work for your business</h2>
+      <p class="msa-lede">Great to meet you. Rodrik Consulting helps business owners and leaders use AI, automation, and data to save time, make better decisions, and grow, with practical steps rather than hype.</p>
+      <ul class="msa-help">
+        <li>AI strategy &amp; adoption</li>
+        <li>Automation &amp; workflows</li>
+        <li>Data &amp; dashboards</li>
+        <li>Websites, apps &amp; digital tools</li>
+      </ul>
+      <p class="msa-note">Request a consultation below. Only your <strong>first name</strong>, <strong>email</strong>, and <strong>company name</strong> are required; everything else is optional.</p>
     </div>
 
-    <div class="form-card" id="form-card">
-      <form id="msa-form" class="msa-form" action="<?= h(strtok($_SERVER['REQUEST_URI'] ?? '/msa2026/', '?')) ?>#msarequest" method="POST" novalidate autocomplete="on">
-        <input type="hidden" name="csrf" value="<?= h($_SESSION['msa_csrf']) ?>">
-        <input type="hidden" name="src" value="<?= h($src) ?>">
+    <div class="form-card">
+      <form id="msa-form" class="msa-form" action="/msa2026/" method="POST" novalidate autocomplete="on">
+        <input type="hidden" name="csrf" value="<?= msa_h($_SESSION['msa_csrf']) ?>">
+        <input type="hidden" name="src" value="<?= msa_h($src) ?>">
         <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" name="fax_number" tabindex="-1" autocomplete="off"></label></div>
 
-        <div id="form-alert" class="form-alert<?= $formError ? ' show' : '' ?>" role="alert"><?= h($formError) ?></div>
+        <div id="msa-alert" class="form-alert<?= $formError ? ' show' : '' ?>" role="alert"><?= msa_h($formError) ?></div>
 
         <div class="row three">
           <label class="field">
             <span>First name<span class="req" aria-hidden="true">*</span></span>
-            <input type="text" name="first_name" id="f-first_name" autocomplete="given-name" maxlength="100" required value="<?= $val('first_name') ?>"
-              aria-describedby="err-first_name"<?= $err('first_name') ? ' aria-invalid="true"' : '' ?>>
-            <small class="err" id="err-first_name"><?= h($err('first_name')) ?></small>
+            <input type="text" name="first_name" id="msa-f-first_name" autocomplete="given-name" maxlength="100" required value="<?= $val('first_name') ?>" aria-describedby="msa-err-first_name"<?= $inv('first_name') ?>>
+            <small class="err" id="msa-err-first_name"><?= msa_h($err('first_name')) ?></small>
           </label>
           <label class="field">
             <span>Email address<span class="req" aria-hidden="true">*</span></span>
-            <input type="email" name="email" id="f-email" autocomplete="email" inputmode="email" maxlength="254" required value="<?= $val('email') ?>"
-              aria-describedby="err-email"<?= $err('email') ? ' aria-invalid="true"' : '' ?>>
-            <small class="err" id="err-email"><?= h($err('email')) ?></small>
+            <input type="email" name="email" id="msa-f-email" autocomplete="email" inputmode="email" maxlength="254" required value="<?= $val('email') ?>" aria-describedby="msa-err-email"<?= $inv('email') ?>>
+            <small class="err" id="msa-err-email"><?= msa_h($err('email')) ?></small>
           </label>
           <label class="field">
             <span>Company name<span class="req" aria-hidden="true">*</span></span>
-            <input type="text" name="company" id="f-company" autocomplete="organization" maxlength="200" required value="<?= $val('company') ?>"
-              aria-describedby="err-company"<?= $err('company') ? ' aria-invalid="true"' : '' ?>>
-            <small class="err" id="err-company"><?= h($err('company')) ?></small>
+            <input type="text" name="company" id="msa-f-company" autocomplete="organization" maxlength="200" required value="<?= $val('company') ?>" aria-describedby="msa-err-company"<?= $inv('company') ?>>
+            <small class="err" id="msa-err-company"><?= msa_h($err('company')) ?></small>
           </label>
         </div>
 
@@ -620,7 +433,7 @@ $ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1
             <select name="company_size">
               <option value="">Prefer not to say</option>
               <?php foreach (MSA_SIZES as $k => $label): ?>
-                <option value="<?= h($k) ?>"<?= ($old['company_size'] ?? '') === $label ? ' selected' : '' ?>><?= h($label) ?></option>
+                <option value="<?= msa_h($k) ?>"<?= ($old['company_size'] ?? '') === $label ? ' selected' : '' ?>><?= msa_h($label) ?></option>
               <?php endforeach; ?>
             </select></label>
         </div>
@@ -629,7 +442,7 @@ $ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1
           <legend>Areas where your business needs help <span class="opt">(optional, pick any)</span></legend>
           <div class="chips">
             <?php foreach (MSA_HELP as $k => $label): ?>
-              <label class="chip"><input type="checkbox" name="help[]" value="<?= h($k) ?>"<?= in_array($k, $old['help_keys'] ?? [], true) ? ' checked' : '' ?>><span><?= h($label) ?></span></label>
+              <label class="chip"><input type="checkbox" name="help[]" value="<?= msa_h($k) ?>"<?= in_array($k, $old['help_keys'] ?? [], true) ? ' checked' : '' ?>><span><?= msa_h($label) ?></span></label>
             <?php endforeach; ?>
           </div>
         </fieldset>
@@ -642,72 +455,63 @@ $ver = @filemtime(($_SERVER['DOCUMENT_ROOT'] ?? '') . '/assets/styles.css') ?: 1
             <select name="meeting_method">
               <option value="">No preference</option>
               <?php foreach (MSA_MEETING as $k => $label): ?>
-                <option value="<?= h($k) ?>"<?= ($old['meeting_method'] ?? '') === $label ? ' selected' : '' ?>><?= h($label) ?></option>
+                <option value="<?= msa_h($k) ?>"<?= ($old['meeting_method'] ?? '') === $label ? ' selected' : '' ?>><?= msa_h($label) ?></option>
               <?php endforeach; ?>
             </select></label>
           <label class="field"><span>Preferred consultation timing <span class="opt">(optional)</span></span>
             <select name="timing">
               <option value="">No preference</option>
               <?php foreach (MSA_TIMING as $k => $label): ?>
-                <option value="<?= h($k) ?>"<?= ($old['timing'] ?? '') === $label ? ' selected' : '' ?>><?= h($label) ?></option>
+                <option value="<?= msa_h($k) ?>"<?= ($old['timing'] ?? '') === $label ? ' selected' : '' ?>><?= msa_h($label) ?></option>
               <?php endforeach; ?>
             </select></label>
         </div>
 
-        <div class="submit-row">
-          <button class="btn btn-lg" type="submit" id="submit-btn">Request my consultation</button>
-        </div>
+        <button class="btn btn-lg msa-submit" type="submit" id="msa-submit">Request my consultation</button>
         <p class="privacy">We'll only use your information to follow up on your request. No spam, and we never sell or share your details.</p>
       </form>
     </div>
-    <?php endif; ?>
+  </div>
 
-    <div class="thanks" id="thanks" role="status" aria-live="polite"<?= $thanksName === null ? ' hidden' : '' ?>>
-      <div class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-      <h2 id="thanks-title" tabindex="-1">Thank you, <span id="thanks-name"><?= h($thanksName ?? '') ?></span>!</h2>
-      <p>Your information has been successfully submitted. I look forward to learning more about your business and exploring how we can put AI and technology to work for you.</p>
-      <p class="muted" id="thanks-redirect-note">You'll be redirected to the Rodrik Consulting homepage shortly.</p>
-      <p class="countdown" id="countdown" aria-live="off">Redirecting in <span id="countdown-n"><?= MSA_REDIRECT_SECONDS ?></span> <span id="countdown-unit">seconds</span>...</p>
-      <a class="btn btn-lg" id="visit-now" href="<?= h(MSA_HOME_URL) ?>">Visit Rodrik Consulting Now</a>
-    </div>
-  </section>
-
-</main>
-
-<footer class="mini-footer">
-  © <span class="yr"><?= date('Y') ?></span> Rodrik Consulting · <a href="<?= h(MSA_HOME_URL) ?>">rodrikconsulting.com</a>
-</footer>
+  <div class="thanks" id="msa-thanks" role="status" aria-live="polite"<?= $thanksName === null ? ' hidden' : '' ?>>
+    <?php if ($thanksName !== null): ?><noscript><meta http-equiv="refresh" content="<?= MSA_REDIRECT_SECONDS ?>;url=<?= msa_h(MSA_HOME_URL) ?>"></noscript><?php endif; ?>
+    <div class="check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2 id="msa-thanks-title" tabindex="-1">Thank you, <span id="msa-thanks-name"><?= msa_h($thanksName ?? '') ?></span>!</h2>
+    <p>Your information has been successfully submitted. I look forward to learning more about your business and exploring how we can put AI and technology to work for you.</p>
+    <p class="muted" id="msa-redirect-note">You'll be redirected to the Rodrik Consulting homepage shortly.</p>
+    <p class="countdown" id="msa-countdown" aria-live="off">Redirecting in <span id="msa-countdown-n"><?= MSA_REDIRECT_SECONDS ?></span> <span id="msa-countdown-unit">seconds</span>...</p>
+    <a class="btn btn-lg" id="msa-visit-now" href="<?= msa_h(MSA_HOME_URL) ?>">Visit Rodrik Consulting Now</a>
+  </div>
+</section>
 
 <script>
-/* Reveal-on-scroll (same as the homepage) */
 (function(){
-  var els = document.querySelectorAll('.reveal');
-  if (!els.length) return;
-  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reduced || !('IntersectionObserver' in window)) {
-    els.forEach(function(el){ el.classList.add('revealed'); });
-    return;
-  }
-  var io = new IntersectionObserver(function(entries, obs){
-    entries.forEach(function(entry){
-      if (entry.isIntersecting){ entry.target.classList.add('revealed'); obs.unobserve(entry.target); }
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
-  els.forEach(function(el){ io.observe(el); });
-})();
+  var section = document.getElementById('msarequest');
+  if (!section) return;
 
-/* Confirmation countdown, then on to the homepage. Stopped whenever the page goes away. */
-var MSA = (function(){
+  /* Show the section for #msarequest links, and keep it open once shown.
+     It is the first thing on the page, so "scroll to it" means the top of the page:
+     the browser's own jump would tuck it under the sticky header. */
+  function toTop(){ window.scrollTo(0, 0); }
+  function openIfTargeted(){
+    if (location.hash === '#msarequest'){ section.classList.add('is-open'); return true; }
+    return false;
+  }
+  if (openIfTargeted()){
+    toTop();
+    window.addEventListener('load', function(){ requestAnimationFrame(toTop); });
+  }
+  window.addEventListener('hashchange', function(){ if (openIfTargeted()) toTop(); });
+
+  /* Confirmation countdown, then on to the homepage. Stopped whenever the page goes away. */
   var HOME = <?= json_encode(MSA_HOME_URL) ?>;
   var SECONDS = <?= (int)MSA_REDIRECT_SECONDS ?>;
   var timer = null;
-
   function render(n){
-    document.getElementById('countdown-n').textContent = n;
-    document.getElementById('countdown-unit').textContent = n === 1 ? 'second' : 'seconds';
+    document.getElementById('msa-countdown-n').textContent = n;
+    document.getElementById('msa-countdown-unit').textContent = n === 1 ? 'second' : 'seconds';
   }
   function stop(){ if (timer !== null){ clearInterval(timer); timer = null; } }
-  function go(){ stop(); window.location.assign(HOME); }
   function start(){
     stop();
     var n = SECONDS;
@@ -715,48 +519,36 @@ var MSA = (function(){
     timer = setInterval(function(){
       n -= 1;
       render(Math.max(n, 0));
-      if (n <= 0) go();
+      if (n <= 0){ stop(); window.location.assign(HOME); }
     }, 1000);
   }
   function showThanks(firstName){
-    var card = document.getElementById('form-card'), intro = document.getElementById('request-intro');
-    if (card) card.hidden = true;
-    if (intro) intro.hidden = true;
-    ['help', 'why'].forEach(function(id){ var s = document.getElementById(id); if (s) s.hidden = true; });
-    var hero = document.getElementById('top'); if (hero) hero.hidden = true;
-    var headerBtn = document.querySelector('.site-header .btn'); if (headerBtn) headerBtn.hidden = true;
-    document.getElementById('thanks-name').textContent = firstName;
-    var box = document.getElementById('thanks');
-    box.hidden = false;
-    window.scrollTo(0, 0);
-    document.getElementById('thanks-title').focus({ preventScroll: true });
+    document.getElementById('msa-wrap').hidden = true;
+    document.getElementById('msa-thanks-name').textContent = firstName;
+    document.getElementById('msa-thanks').hidden = false;
+    section.classList.add('is-open');
+    toTop();
+    document.getElementById('msa-thanks-title').focus({ preventScroll: true });
     start();
   }
-
-  document.getElementById('visit-now').addEventListener('click', stop);
+  document.getElementById('msa-visit-now').addEventListener('click', stop);
   window.addEventListener('pagehide', stop);
   // Back button from the homepage (page restored from cache): don't bounce them away again.
   window.addEventListener('pageshow', function(e){
-    if (e.persisted && !document.getElementById('thanks').hidden){
+    if (e.persisted && !document.getElementById('msa-thanks').hidden){
       stop();
-      document.getElementById('countdown').hidden = true;
-      document.getElementById('thanks-redirect-note').hidden = true;
+      document.getElementById('msa-countdown').hidden = true;
+      document.getElementById('msa-redirect-note').hidden = true;
     }
   });
+  <?php if ($thanksName !== null): ?>start();<?php endif; ?>
 
-  return { start: start, stop: stop, showThanks: showThanks };
-})();
-<?php if ($thanksName !== null): ?>
-MSA.start();
-<?php endif; ?>
-
-/* Form: validate, send, and only say "thank you" once the server confirms the lead was saved. */
-(function(){
+  /* Form: validate, send, and only say "thank you" once the server confirms the lead was saved. */
   var form = document.getElementById('msa-form');
   if (!form || !window.fetch || !window.FormData) return; // falls back to a normal form post
-  var btn = document.getElementById('submit-btn');
+  var btn = document.getElementById('msa-submit');
   var btnLabel = btn.textContent;
-  var alertBox = document.getElementById('form-alert');
+  var alertBox = document.getElementById('msa-alert');
   var REQUIRED = ['first_name', 'email', 'company'];
   var MESSAGES = {
     first_name: 'Please enter your first name.',
@@ -767,7 +559,7 @@ MSA.start();
   var OFFLINE = "We couldn't reach the server. Please check your connection and try again.";
 
   function setError(name, msg){
-    var input = form.elements[name], el = document.getElementById('err-' + name);
+    var input = form.elements[name], el = document.getElementById('msa-err-' + name);
     if (el) el.textContent = msg || '';
     if (input){ if (msg) input.setAttribute('aria-invalid', 'true'); else input.removeAttribute('aria-invalid'); }
   }
@@ -794,7 +586,6 @@ MSA.start();
     if (busy){ var s = document.createElement('span'); s.className = 'spinner'; s.setAttribute('aria-hidden', 'true'); btn.appendChild(s); btn.appendChild(document.createTextNode('Sending...')); }
     else btn.textContent = btnLabel;
   }
-
   // Clear a field's error as soon as it's fixed.
   REQUIRED.forEach(function(name){
     form.elements[name].addEventListener('input', function(){
@@ -812,7 +603,7 @@ MSA.start();
     .then(function(data){
       if (data && data.ok === true){
         if (typeof gtag === 'function') gtag('event', 'generate_lead', { form_name: 'msa2026' });
-        MSA.showThanks(data.firstName || form.elements.first_name.value.trim());
+        showThanks(data.firstName || form.elements.first_name.value.trim());
         return;
       }
       if (data && data.csrf) form.elements.csrf.value = data.csrf;
@@ -833,5 +624,31 @@ MSA.start();
   });
 })();
 </script>
-</body>
-</html>
+<?php
+}
+
+/* ===== Direct requests to /msa2026/ (the homepage includes this file with MSA_EMBED set) ===== */
+if (!defined('MSA_EMBED')) {
+  if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    [$status, $res] = msa_handle_post();
+    if (stripos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false) {
+      unset($res['data']);
+      http_response_code($status);
+      header('Content-Type: application/json; charset=utf-8');
+      header('Cache-Control: no-store');
+      echo json_encode($res);
+      exit;
+    }
+    // Without JavaScript: keep the result in the session and go back to the form,
+    // so a refresh can't send it twice.
+    if ($res['ok']) $_SESSION['msa_thanks'] = $res['firstName'];
+    else $_SESSION['msa_flash'] = ['message' => $res['message'], 'errors' => $res['errors'] ?? [], 'data' => $res['data'] ?? []];
+    header('Location: /#msarequest', true, 303);
+    exit;
+  }
+  // Old links and QR codes to /msa2026 land on the homepage form.
+  $src = strtolower((string)($_GET['src'] ?? ''));
+  $query = preg_match('/^[a-z0-9_-]{1,40}$/', $src) ? '?src=' . $src : '';
+  header('Location: /' . $query . '#msarequest', true, 302);
+  exit;
+}
