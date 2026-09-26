@@ -12,7 +12,10 @@
     "test:unit": "vitest run --exclude \"src/**/*.integration.test.ts\"",
     "test:db": "vitest run src/test",
     "db:local": "scripts/db-local-reset.sh",
-    "db:types": "tsx scripts/gen-db-types.ts"
+    "db:types": "tsx scripts/gen-db-types.ts",
+    "test:e2e": "node e2e/full-journey.mjs",
+    "test:e2e:stripe": "node e2e/stripe-webhook.mjs",
+    "db:seed:demo": "psql \"$DATABASE_URL\" -f supabase/seed.sql"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

@@ -4,12 +4,25 @@ import { requireOrgContext } from "@/lib/auth/session";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { DeleteOrganizationForm, RetentionForm } from "@/components/app/settings-forms";
+import { createClient } from "@/lib/supabase/server";
+import { formatDateTime } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Data & privacy" };
 
 export default async function DataPrivacyPage() {
   const ctx = await requireOrgContext();
   const isOwner = ctx.role === "owner";
+  const canSeeAudit = ctx.role === "owner" || ctx.role === "admin";
+  const supabase = await createClient();
+  // RLS limits audit entries to this organization's owners and administrators.
+  const { data: activity } = canSeeAudit
+    ? await supabase
+        .from("audit_logs")
+        .select("id, created_at, actor_email, action, target_type")
+        .eq("org_id", ctx.org.id)
+        .order("created_at", { ascending: false })
+        .limit(50)
+    : { data: null };
   return (
     <div className="max-w-3xl space-y-6">
       <Card>
@@ -56,6 +69,30 @@ export default async function DataPrivacyPage() {
           )}
         </CardBody>
       </Card>
+
+      {canSeeAudit ? (
+        <Card className="overflow-hidden">
+          <CardHeader title="Activity log" description="Recent administrative actions in this organization (latest 50). Survey respondents are never recorded." />
+          <div className="max-h-96 overflow-auto">
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-line">
+                {(activity ?? []).map((a) => (
+                  <tr key={a.id}>
+                    <td className="whitespace-nowrap px-5 py-2 text-xs text-muted">{formatDateTime(a.created_at)}</td>
+                    <td className="px-5 py-2 font-mono text-xs text-navy-900">{a.action}</td>
+                    <td className="px-5 py-2 text-xs text-muted">{a.actor_email ?? "System"}</td>
+                  </tr>
+                ))}
+                {!activity?.length ? (
+                  <tr>
+                    <td className="px-5 py-4 text-sm text-muted">No activity recorded yet.</td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      ) : null}
 
       {isOwner ? (
         <Card className="border-red-200">
