@@ -190,6 +190,7 @@ ROHA never receives or stores card data; only Stripe identifiers are kept.
 ### 4. Hosting (Vercel recommended)
 
 1. Import the repository, set all environment variables for Production, including `NEXT_PUBLIC_APP_URL=https://roha.droscarrodriguez.com`.
+   The application lives on the branch `claude/build-roha-saas-w95xsg`: set it as the production branch (Vercel → Settings → Environments → Production → Branch Tracking). The repository's default branch holds unrelated content.
 2. **Custom domain:** in Vercel → Project → Settings → Domains, add `roha.droscarrodriguez.com`. At the DNS provider for `droscarrodriguez.com`, create the record Vercel shows (normally a **CNAME** named `roha` pointing to `cname.vercel-dns.com`). Vercel issues the HTTPS certificate automatically once DNS resolves.
 3. `vercel.json` schedules the daily retention job; set `CRON_SECRET` (Vercel sends it as a Bearer token).
 4. Deploy, then sign up with an email listed in `ROHA_PLATFORM_ADMIN_EMAILS` to access `/admin`.
