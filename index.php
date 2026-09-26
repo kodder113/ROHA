@@ -678,8 +678,8 @@ if (is_file(__DIR__ . '/msa2026/index.php')) require_once __DIR__ . '/msa2026/in
     <!-- BOOK: Leading With Machines (matches rodrik.io presentation) -->
     <div id="book" class="book-feature reveal">
       <a class="book-cover" href="https://www.amazon.com/dp/B0GZJ9RD9B" target="_blank" rel="noopener" aria-label="Leading With Machines on Amazon">
-        <img src="https://rodrik.io/ebook_cover.jpg" alt="Leading With Machines book cover"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <img src="/assets/ebook_cover.jpg" alt="Leading With Machines book cover"
+             onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://rodrik.io/ebook_cover.jpg';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}">
         <span class="book-cover-fallback">
           <span class="book-cover-title">LEADING WITH MACHINES</span>
           <span class="book-cover-line"></span>
