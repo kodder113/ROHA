@@ -59,6 +59,7 @@ export type Database = {
           status: string;
           created_by: string | null;
           created_at: string;
+          supported_assessment_versions: number[];
         };
         Insert: {
           id?: string;
@@ -68,6 +69,7 @@ export type Database = {
           status?: string;
           created_by?: string | null;
           created_at?: string;
+          supported_assessment_versions?: number[];
         };
         Update: {
           id?: string;
@@ -77,6 +79,7 @@ export type Database = {
           status?: string;
           created_by?: string | null;
           created_at?: string;
+          supported_assessment_versions?: number[];
         };
         Relationships: [
 
@@ -1332,6 +1335,7 @@ export type Database = {
       is_platform_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       participation_token_status: { Args: { p_survey_token: string; p_token_hash: string }; Returns: string };
       provision_organization: { Args: { p_user: string; p_email: string; p_payload: Json }; Returns: string };
+      publish_assessment_release: { Args: { p_assessment_version_id: string; p_scoring_rules_id: string; p_ai_instructions_id: string; p_retire_previous: boolean; p_actor_user_id: string; p_actor_email: string }; Returns: Json };
       rate_limit_hit: { Args: { p_key: string; p_window_seconds: number; p_max: number }; Returns: boolean };
       seed_demo_organization: { Args: Record<PropertyKey, never>; Returns: string };
       submit_survey_response: { Args: { p_survey_token: string; p_token_hash: string; p_profile: Json; p_items: Json; p_comments: Json }; Returns: Json };

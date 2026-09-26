@@ -43,9 +43,21 @@ export async function updateAiInstructionsDraft(_prev: ActionState, formData: Fo
 
 export async function activateAiInstructions(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return runAdminAction(formData, z.object({ id: zId }), async ({ admin, input, audit }) => {
-    const { data: target } = await admin.from("ai_report_instructions").select("id, status, version_number").eq("id", input.id).maybeSingle();
+    const { data: target } = await admin
+      .from("ai_report_instructions")
+      .select("id, status, version_number, supported_assessment_versions")
+      .eq("id", input.id)
+      .maybeSingle();
     if (!target) throw new AdminActionError("Instructions version not found.");
     if (target.status === "active") return `v${target.version_number} is already active.`;
+    // Instructions must describe every assessment version available for new campaigns.
+    const { data: inUse } = await admin.from("assessment_versions").select("version_number").eq("status", "published");
+    const unsupported = (inUse ?? []).map((v) => v.version_number).filter((n) => !target.supported_assessment_versions.includes(n));
+    if (unsupported.length) {
+      throw new AdminActionError(
+        `v${target.version_number} does not support published assessment version ${unsupported.join(", ")}. Activate compatible instructions, or publish a release.`,
+      );
+    }
 
     // Only one active row is allowed (partial unique index): retire the current one first.
     const { data: previous, error: retireError } = await admin

@@ -3,7 +3,8 @@ import { computeSuppression } from "./suppression";
 import { redactSmallCells, scrubPII, seededShuffle } from "./redact";
 import { DEFAULT_SCORING_CONFIG } from "@/lib/scoring/config";
 import { scoreAssessment } from "@/lib/scoring/engine";
-import { fixtureDimensions, fixtureQuestions, responseFrom, uniformResponse } from "@/lib/scoring/fixtures";
+import { fixtureDimensions, fixtureQuestions, fixtureV2Dimensions, fixtureV2Questions, responseFrom, responseFromV2, uniformResponse } from "@/lib/scoring/fixtures";
+import { parseScoringConfig } from "@/lib/scoring/config";
 import { analyzeSegments, type ProfiledResponse } from "@/lib/results/segments";
 
 const K = 5;
@@ -157,6 +158,55 @@ describe("analyzeSegments", () => {
     expect(fin.reason).toBe("complementary");
     expect(ops.visible).toBe(true);
     expect(ops.result!.overall.currentIndex).toBe(50);
+  });
+});
+
+describe("privacy with per-dimension inclusion (scoring rules v2)", () => {
+  const config = parseScoringConfig({ ...DEFAULT_SCORING_CONFIG, minValidCurrentRatings: 20, minValidCurrentPerDimension: 4, assessmentVersion: 2 });
+  const ctx = { dimensions: fixtureV2Dimensions, questions: fixtureV2Questions, config };
+  const full = (dept: string): ProfiledResponse => ({ ...responseFromV2(() => ({ current: 4, desired: 5 })), profile: { department: dept } });
+  const noSI = (dept: string): ProfiledResponse => ({
+    ...responseFromV2((q) => (q.key === "SI3" || q.key === "SI5" ? { current: "NA", desired: "NA" } : { current: 2, desired: 5 })),
+    profile: { department: dept },
+  });
+  const score = (responses: ProfiledResponse[]) => redactSmallCells(scoreAssessment({ ...ctx, responses }), K);
+  const dim = (r: ReturnType<typeof score>, key: string) => r.dimensions.find((d) => d.key === key)!;
+
+  it("hides the overall index and small dimensions while showing dimensions with at least five respondents", () => {
+    const r = score([...Array.from({ length: 4 }, () => full("a")), ...Array.from({ length: 3 }, () => noSI("a"))]);
+    expect(r.validResponses).toBe(4);
+    expect(r.overall.currentIndex).toBeNull();
+    expect(dim(r, "leadership").current.n).toBe(7);
+    expect(dim(r, "leadership").current.score).not.toBeNull();
+    expect(dim(r, "strategy_innovation").current.n).toBe(4);
+    expect(dim(r, "strategy_innovation").current.score).toBeNull();
+    expect(r.questions.find((q) => q.key === "SI1")!.current.score).toBeNull();
+  });
+
+  it("withholds everything when fewer than five respondents contribute to any score", () => {
+    const r = score([...Array.from({ length: 2 }, () => full("a")), ...Array.from({ length: 2 }, () => noSI("a"))]);
+    expect(r.overall.currentIndex).toBeNull();
+    expect(r.dimensions.every((d) => d.current.score === null)).toBe(true);
+  });
+
+  it("sizes segments by every contributing respondent and applies cell thresholds within them", () => {
+    const responses = [...Array.from({ length: 3 }, () => full("ops")), ...Array.from({ length: 3 }, () => noSI("ops")), ...Array.from({ length: 6 }, () => full("fin"))];
+    const analysis = analyzeSegments("department", [{ key: "ops", label: "Ops" }, { key: "fin", label: "Finance" }], responses, ctx);
+    const ops = analysis.segments.find((s) => s.key === "ops")!;
+    expect(ops.visible).toBe(true);
+    expect(ops.n).toBe(6); // 3 eligible everywhere + 3 eligible in four dimensions
+    expect(ops.result!.overall.currentIndex).toBeNull(); // only 3 in the overall index
+    expect(ops.result!.dimensions.find((d) => d.key === "strategy_innovation")!.current.score).toBeNull(); // n = 3
+    expect(ops.result!.dimensions.find((d) => d.key === "leadership")!.current.score).not.toBeNull(); // n = 6
+    expect(ops.result!.exclusions).toBeUndefined();
+  });
+
+  it("hides a group of fewer than five contributors and protects its complement", () => {
+    const responses = [...Array.from({ length: 8 }, () => full("ops")), ...Array.from({ length: 6 }, () => full("fin")), ...Array.from({ length: 2 }, () => noSI("legal"))];
+    const analysis = analyzeSegments("department", [{ key: "ops", label: "Ops" }, { key: "fin", label: "Finance" }, { key: "legal", label: "Legal" }], responses, ctx);
+    expect(analysis.segments.find((s) => s.key === "legal")!.visible).toBe(false);
+    expect(analysis.segments.find((s) => s.key === "fin")!.visible).toBe(false); // remainder 2 < 5
+    expect(analysis.segments.find((s) => s.key === "ops")!.visible).toBe(true);
   });
 });
 

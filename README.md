@@ -80,7 +80,7 @@ TypeScript types are generated into `src/lib/database.types.ts` (`npm run db:typ
 | IA | Innovation and Adaptability |
 | SA | Strategic Alignment |
 
-**Version 2 (approved, not published):** five dimensions × five items (25 items, 50 ratings): LE, OC, EE, OE and **SI — Strategic Alignment & Innovation**. The application supports both versions: the publication checklist accepts balanced 5–6 × 4–6 structures when matching scoring rules are published; reports map sections H and I to SI items without sub-scores; the history chart keeps versions separate. The draft is loaded only by `supabase/drafts/assessment_v2_draft.sql` (never automatically), and `e2e/v2-transition.mjs` rehearses publication on a local database.
+**Version 2 (approved, not published):** five dimensions × five items (25 items, 50 ratings): LE, OC, EE, OE and **SI — Strategic Alignment & Innovation**. The application supports both versions: the publication checklist accepts balanced 5–6 × 4–6 structures when matching scoring rules are published; reports map sections H and I to SI items without sub-scores; the history chart keeps versions separate. The draft is loaded only by `supabase/drafts/assessment_v2_draft.sql` (never automatically). A release (assessment version, its scoring rules and compatible AI instructions) is published in one database transaction (`publish_assessment_release`), after which every cached page is refreshed. `e2e/v2-transition.mjs` rehearses this on a local database.
 
 Scoring (`src/lib/scoring/engine.ts`, rules v1 in `scoring_rule_versions`):
 
@@ -88,7 +88,7 @@ Scoring (`src/lib/scoring/engine.ts`, rules v1 in `scoring_rule_versions`):
 - Question score = normalized mean of valid numeric ratings; N/A and missing ratings are excluded but counted.
 - Dimension score = mean of question scores (equal weights by default); overall index = mean of dimension scores (equal weights).
 - **Gap = desired − current** at every level. Positive: employees prefer more of the characteristic; negative: less (not automatically a problem).
-- Inclusion rule: rules v1 include a response with at least 12 numeric current-state ratings. Rules v2 (draft) include a response only with at least 4 numeric current-state ratings in **every** dimension (N/A does not count). Excluded responses are counted and explained, by dimension, in dashboards and reports.
+- Inclusion rule: rules v1 include a response with at least 12 numeric current-state ratings. Rules v2 (draft): a respondent counts in each dimension where it has at least 4 numeric current-state ratings, and in the overall index only when that holds in **every** dimension (N/A does not count). Respondent counts are shown per dimension and for the index, and shortfalls are explained by dimension.
 - Scoring rules declare the assessment version they belong to (`assessmentVersion`, absent = 1); new campaigns use the newest published rules for their assessment version.
 - Distributions, sample sizes, N/A and missing counts are preserved. Descriptive bands (0–39, 40–59, 60–79, 80–100) are interpretive aids, not validated cut-offs.
 - No industry benchmarks are produced. Scores describe perceptions and do not establish effectiveness, retention, productivity or financial performance.

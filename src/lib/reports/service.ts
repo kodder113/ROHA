@@ -78,7 +78,7 @@ export async function generateReport(args: {
 
   const { data: instructions } = await admin
     .from("ai_report_instructions")
-    .select("id, system_prompt")
+    .select("id, system_prompt, supported_assessment_versions")
     .eq("status", "active")
     .maybeSingle();
 
@@ -104,6 +104,13 @@ export async function generateReport(args: {
     let usage: Record<string, unknown> | null = null;
     if (useAI) {
       if (!instructions) throw new AIReportError("No active AI reporting instructions are configured.", false);
+      // Instructions describe specific assessment versions; never apply them to another.
+      if (!instructions.supported_assessment_versions.includes(view.payload.assessmentVersion)) {
+        throw new AIReportError(
+          `The active AI reporting instructions do not support assessment version ${view.payload.assessmentVersion}. A platform administrator must activate compatible instructions.`,
+          false,
+        );
+      }
       const result = await generateAIReport(snapshot, instructions.system_prompt);
       report = result.report;
       model = result.model;

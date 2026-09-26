@@ -256,18 +256,31 @@ describe("per-dimension inclusion rule (scoring rules v2)", () => {
     expect(check.shortfallInvolvesNA).toBe(true);
   });
 
-  it("reports exclusions transparently by dimension and cause", () => {
+  it("counts respondents in every dimension where they are eligible, and in the overall index only when eligible everywhere", () => {
     const ok = resp(() => ({ current: 3, desired: 5 }));
     const naSI = resp((k) => (k === "SI3" || k === "SI5" ? { current: "NA", desired: "NA" } : { current: 3, desired: 5 }));
     const missingLE = resp((k) => (k.startsWith("LE") && k !== "LE1" ? { current: null, desired: null } : { current: 3, desired: 5 }));
     const result = score25([ok, ok, naSI, missingLE], v2Config);
     expect(result.validResponses).toBe(2);
-    expect(result.excludedResponses).toBe(2);
+    expect(result.contributingResponses).toBe(4);
+    expect(result.partialResponses).toBe(2);
+    expect(result.excludedResponses).toBe(0);
+    const n = Object.fromEntries(result.dimensions.map((d) => [d.key, d.current.n]));
+    expect(n).toEqual({ le: 3, oc: 4, ee: 4, oe: 4, si: 3 });
     expect(result.exclusions?.belowDimensionThreshold).toEqual({ si: 1, le: 1 });
     expect(result.exclusions?.withNotApplicable).toBe(1);
-    expect(result.exclusions?.rule).toMatch(/at least 4 in every dimension/);
-    // Excluded respondents do not affect any score.
+    expect(result.exclusions?.basis).toBe("per-dimension");
+    expect(result.exclusions?.rule).toMatch(/at least 4 in every dimension, for the overall index/);
     expect(result.overall.currentIndex).toBe(50);
+  });
+
+  it("excludes a respondent eligible in no dimension from every score", () => {
+    const ok = resp(() => ({ current: 4, desired: 5 }));
+    const empty = resp(() => ({ current: "NA", desired: "NA" }));
+    const result = score25([ok, empty], v2Config);
+    expect(result.excludedResponses).toBe(1);
+    expect(result.contributingResponses).toBe(1);
+    expect(result.dimensions.every((d) => d.current.n === 1)).toBe(true);
   });
 
   it("leaves rules without the per-dimension setting (v1) unchanged", () => {
@@ -280,3 +293,40 @@ describe("per-dimension inclusion rule (scoring rules v2)", () => {
     expect(engineMajor("roha-scoring-engine/1.0.0")).toBe(engineMajor(ENGINE_VERSION));
   });
 });
+
+describe("statistical implications of separate populations (scoring rules v2)", () => {
+  const v2Config = parseScoringConfig({ ...config, minValidCurrentRatings: 20, minValidCurrentPerDimension: 4, assessmentVersion: 2 });
+  const dims5 = ["LE", "OC", "EE", "OE", "SI"].map((code, i) => ({ id: `d-${code}`, key: code.toLowerCase(), code, name: code, sortOrder: i + 1 }));
+  const qs25 = dims5.flatMap((d) => [1, 2, 3, 4, 5].map((n) => ({ id: `q-${d.code}${n}`, key: `${d.code}${n}`, dimensionId: d.id, focus: "", prompt: "", sortOrder: n, allowNa: true })));
+  const resp = (fn: (key: string) => ResponseRecord["items"][string]) => ({ items: Object.fromEntries(qs25.map((q) => [q.id, fn(q.key)])) });
+  // Five respondents rate everything 5; five others rate everything 1 but mark SI3 and SI5 N/A.
+  const full = Array.from({ length: 5 }, () => resp(() => ({ current: 5, desired: 5 })));
+  const partial = Array.from({ length: 5 }, () => resp((k) => (k === "SI3" || k === "SI5" ? { current: "NA", desired: "NA" } : { current: 1, desired: 5 })));
+  const result = scoreAssessment({ dimensions: dims5, questions: qs25, responses: [...full, ...partial], config: v2Config });
+  const byKey = Object.fromEntries(result.dimensions.map((d) => [d.key, d]));
+
+  it("scores each dimension on its own eligible respondents", () => {
+    expect(byKey.le.current.n).toBe(10);
+    expect(byKey.le.current.score).toBe(50);
+    expect(byKey.si.current.n).toBe(5);
+    expect(byKey.si.current.score).toBe(100);
+  });
+
+  it("computes the overall index on respondents eligible in every dimension, so it can differ from the mean of displayed dimension scores", () => {
+    const meanOfDisplayed = result.dimensions.reduce((sum, d) => sum + d.current.score!, 0) / result.dimensions.length;
+    expect(meanOfDisplayed).toBe(60);
+    expect(result.validResponses).toBe(5);
+    expect(result.overall.currentIndex).toBe(100);
+    expect(result.overall.desiredIndex).toBe(100);
+  });
+
+  it("gives identical results to the single-population method when every respondent is eligible everywhere", () => {
+    const all = [...full, ...Array.from({ length: 5 }, () => resp(() => ({ current: 1, desired: 5 })))];
+    const v2 = scoreAssessment({ dimensions: dims5, questions: qs25, responses: all, config: v2Config });
+    const single = scoreAssessment({ dimensions: dims5, questions: qs25, responses: all, config: { ...config, minValidCurrentRatings: 20 } });
+    expect(v2.overall.currentIndex).toBe(single.overall.currentIndex);
+    expect(v2.dimensions.map((d) => d.current.score)).toEqual(single.dimensions.map((d) => d.current.score));
+    expect(v2.partialResponses).toBe(0);
+  });
+});
+

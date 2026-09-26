@@ -148,6 +148,13 @@ export function generateRulesReport(s: ReportInputSnapshot): ExecutiveReport {
     ]),
     limitations: [
       "This is a rules-based summary; it does not interpret qualitative comments or provide contextual analysis.",
+      ...(s.participation.partialResponses
+        ? [
+            `The overall index is based on the ${s.participation.validResponses} respondents who met the requirement in every dimension; ${s.participation.partialResponses} further response${
+              s.participation.partialResponses === 1 ? " is" : "s are"
+            } counted only in the dimensions where the requirement was met, so dimension scores and the overall index can rest on different respondents (see each dimension's n).`,
+          ]
+        : []),
       ...(s.participation.excludedResponses
         ? [
             `${s.participation.excludedResponses} response${s.participation.excludedResponses === 1 ? " was" : "s were"} excluded because ${

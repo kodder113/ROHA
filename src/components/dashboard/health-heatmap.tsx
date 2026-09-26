@@ -111,7 +111,7 @@ export function HealthHeatmap({
             <tr>
               <th scope="row" className="truncate py-0.5 pr-2 text-sm font-semibold text-navy-900">
                 Organization
-                <span className="block text-[11px] font-normal text-muted">{organization.validResponses} responses</span>
+                <span className="block text-[11px] font-normal text-muted">{organization.contributingResponses ?? organization.validResponses} responses</span>
               </th>
               {dims.map((d) => (
                 <ScoreCell key={d.key} score={d.current.score} label={`Organization · ${d.name}`} />

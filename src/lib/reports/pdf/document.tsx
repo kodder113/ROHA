@@ -322,7 +322,11 @@ function Participation({ snapshot, registry }: SectionProps) {
           <Text style={styles.paragraph}>{privacyText}</Text>
           <Text style={styles.paragraph}>
             {`A response is counted as valid when it meets the inclusion rule${p.inclusionRule ? `: ${p.inclusionRule}` : " (a minimum number of current-state ratings)"}. ${
-              p.validResponses < p.responses ? `${fmtInt(p.responses - p.validResponses)} submitted response(s) did not meet this rule and were excluded.` : "All submitted responses met this rule."
+              p.partialResponses !== undefined
+                ? `The overall index is based on ${fmtInt(p.validResponses)} respondent(s) who met the rule in every dimension; each dimension is based on the respondents who met it in that dimension (n in the profile table).`
+                : p.validResponses < p.responses
+                  ? `${fmtInt(p.responses - p.validResponses)} submitted response(s) did not meet this rule and were excluded.`
+                  : "All submitted responses met this rule."
             }`}
           </Text>
           {p.exclusionReasons?.length ? <Bullets items={p.exclusionReasons.map((r) => `${r}.`)} /> : null}
@@ -340,7 +344,7 @@ function HealthIndex({ snapshot, registry }: SectionProps) {
         id="index"
         number={sectionNumber("index")}
         title="Organizational Health Index"
-        intro={`A single, equally weighted summary of all ${numberWord(snapshot.dimensions.length)} dimensions.`}
+        intro={`A single, equally weighted summary of all ${numberWord(snapshot.dimensions.length)} dimensions${snapshot.participation.partialResponses !== undefined ? `, based on the ${fmtInt(snapshot.participation.validResponses)} respondents who met the inclusion rule in every dimension. It can differ from the average of the dimension scores, which include every respondent eligible for each dimension` : ""}.`}
         registry={registry}
       />
       <View style={{ flexDirection: "row", alignItems: "flex-end", marginBottom: 6 }} wrap={false}>
@@ -835,6 +839,11 @@ function standardLimitations(snapshot: ReportInputSnapshot): string[] {
           ...(snapshot.dimensions.some((d) => d.key === "strategy_innovation")
             ? [
                 "Integrated dimension. Strategic Alignment & Innovation combines direction and adaptive-innovation aspects in one score. Whether a single score represents it well has not yet been tested, so its aspects are discussed using item-level results.",
+              ]
+            : []),
+          ...(snapshot.participation.partialResponses !== undefined
+            ? [
+                "Respondent populations. The overall index uses only respondents who met the inclusion rule in every dimension, while each dimension score uses every respondent who met it in that dimension. Dimension scores can therefore rest on more respondents than the overall index, and the index is not necessarily the average of the dimension scores. Respondents who give fewer ratings in a dimension (often through Not Applicable answers) may differ systematically from others.",
               ]
             : []),
           "Desired-state ratings. Desired ratings for most items are expected to be high, so gaps largely mirror current scores. Gaps are presented as indicators of where employees most want improvement; the value of the desired rating is being evaluated in the pilot.",

@@ -162,7 +162,7 @@ function makeV2Snapshot() {
   const responses = Array.from({ length: 28 }, () =>
     responseFromV2(() => ({ current: 1 + Math.floor(rand() * 5), desired: 3 + Math.floor(rand() * 3) })),
   );
-  // Two respondents mark both SI3 and SI5 as N/A and are excluded by the per-dimension rule.
+  // Two respondents mark both SI3 and SI5 as N/A: counted in LE, OC, EE and OE, not in SI or the overall index.
   for (let i = 0; i < 2; i++) {
     responses.push(responseFromV2((q) => (q.key === "SI3" || q.key === "SI5" ? { current: "NA", desired: "NA" } : { current: 4, desired: 5 })));
   }
@@ -193,9 +193,12 @@ describe("assessment version 2 reporting", () => {
     expect(snap.dimensions.map((d) => d.key)).toEqual(["leadership", "culture", "engagement", "operations", "strategy_innovation"]);
     expect(snap.items).toHaveLength(25);
     expect(snap.participation.validResponses).toBe(28);
-    expect(snap.participation.excludedResponses).toBe(2);
+    expect(snap.participation.excludedResponses).toBe(0);
+    expect(snap.participation.partialResponses).toBe(2);
+    expect(snap.dimensions.find((d) => d.key === "leadership")?.respondents).toBe(30);
+    expect(snap.dimensions.find((d) => d.key === "strategy_innovation")?.respondents).toBe(28);
     expect(snap.participation.inclusionRule).toMatch(/at least 4 in every dimension/);
-    expect(snap.participation.exclusionReasons?.join(" ")).toMatch(/2 responses had too few current-state ratings in Strategic Alignment & Innovation/);
+    expect(snap.participation.exclusionReasons?.join(" ")).toMatch(/2 responses had too few current-state ratings in Strategic Alignment & Innovation and are not counted in that dimension/);
   });
 
   it("maps sections H and I to Strategic Alignment & Innovation items without sub-scores", () => {
@@ -212,7 +215,8 @@ describe("assessment version 2 reporting", () => {
     expect(report.innovation_readiness.findings.map((f) => f.evidence).join(" ")).toMatch(/SI3.*SI4.*SI5/);
     expect(report.strategic_alignment.findings.map((f) => f.evidence).join(" ")).toMatch(/SI1.*SI2.*LE2.*LE5/);
     expect(JSON.stringify(report)).not.toMatch(/six dimensions/);
-    expect(report.limitations.join(" ")).toMatch(/2 responses were excluded/);
+    expect(report.limitations.join(" ")).toMatch(/2 further responses are counted only in the dimensions/);
+    expect(report.limitations.join(" ")).not.toMatch(/were excluded/);
   });
 
   it("limits the AI output schema to the version's dimensions and describes the section mapping", async () => {

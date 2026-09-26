@@ -13,7 +13,8 @@
 -- When run (only after Rodrik Consulting approval) it creates, all as DRAFTS:
 --   * assessment version 2 — five dimensions × five items (25 items);
 --   * scoring rules version 2 — v1 formula and weights unchanged; a respondent
---     is included only with at least 4 numeric current-state ratings in EVERY
+--     counts in each dimension where it has at least 4 numeric current-state
+--     ratings, and in the overall index only when that holds in EVERY
 --     dimension (N/A and blanks do not count), i.e. at least 20 of 25;
 --   * AI reporting instructions version 2 — version-neutral wording.
 --
@@ -22,9 +23,12 @@
 -- Drafts are invisible to organizations and cannot be used by campaigns.
 --
 -- The application supports five-by-five versions (see
--- docs/assessment-v2/08-engineering-changes-before-publication.md). The
--- super-admin checklist requires published scoring rules for version 2
--- before assessment version 2 can be published: publish rules v2 first.
+-- docs/assessment-v2/08-engineering-changes-before-publication.md).
+--
+-- Requires migration 20260927000100 (supported_assessment_versions and
+-- publish_assessment_release). Publish with the super-admin "Publish release"
+-- action, which publishes assessment v2, scoring rules v2 and AI instructions
+-- v2 together in one transaction.
 --
 -- Safe to run once: aborts if any version 2 already exists.
 -- Tested by src/test/assessment-v2-draft.integration.test.ts.
@@ -60,7 +64,7 @@ begin
     'Owner-directed restructure (September 26, 2026): five dimensions × five items (25 items). '
     || 'Strategic Alignment and Innovation and Adaptability are replaced by one integrated dimension, Strategic Alignment & Innovation. '
     || 'Of the 24 v1 items: 11 retained, 11 revised, 2 retired (SA4, IA3); 3 new items (OC5, EE5, OE5). '
-    || 'Owner final adjustments: EE5 and SI3 wording; per-dimension inclusion rule (4 of 5 per dimension). '
+    || 'Owner final adjustments: EE5 and SI3 wording; per-dimension inclusion (4 of 5 per dimension; overall index requires all five). '
     || 'Rating labels reworded for first-person items. See docs/assessment-v2/. '
     || 'Requires licensed-instrument screening and owner approval before publication.'
   )
@@ -156,9 +160,10 @@ begin
   insert into public.scoring_rule_versions (version_number, name, status, config, notes)
   select 2, 'ROHA Scoring Rules v2 (draft for five-dimension assessment)', 'draft',
          config || '{"minValidCurrentRatings": 20, "minValidCurrentPerDimension": 4, "assessmentVersion": 2}'::jsonb,
-         'Draft for assessment version 2 (5 dimensions × 5 items). Scoring formula unchanged from v1. Inclusion rule: a respondent '
-         || 'is included only with at least 4 numeric current-state ratings in every dimension (N/A and blank answers do not count), '
-         || 'hence at least 20 of 25 overall; excluded respondents are reported by reason. '
+         'Draft for assessment version 2 (5 dimensions × 5 items). Scoring formula unchanged from v1. Inclusion (engine 1.2): '
+         || 'a respondent counts in a dimension when it has at least 4 numeric current-state ratings in that dimension, and in the '
+         || 'overall index only when this holds for every dimension (hence at least 20 of 25); N/A and blank answers do not count. '
+         || 'Respondent counts are reported per dimension and for the overall index. '
          || 'Equal item weights within dimensions; equal dimension weights (20% each). '
          || 'Normalized score = ((rating − 1) / 4) × 100; gap = desired − current; N/A excluded. See docs/assessment-v2/05-scoring-specification.md.'
   from public.scoring_rule_versions where version_number = 1;
@@ -167,8 +172,8 @@ begin
   -- AI reporting instructions version 2 (draft, not active): version-neutral
   -- description of the framework; "diagnostic" wording corrected.
   -- --------------------------------------------------------------------------
-  insert into public.ai_report_instructions (version_number, name, status, system_prompt)
-  select 2, 'Executive Intelligence Report v2 (draft, version-neutral)', 'draft',
+  insert into public.ai_report_instructions (version_number, name, status, supported_assessment_versions, system_prompt)
+  select 2, 'Executive Intelligence Report v2 (draft, version-neutral)', 'draft', '{1,2}',
          replace(
            replace(system_prompt,
              'ROHA (Rodrik Organizational Health Assessment) is an independently developed diagnostic that measures employee perceptions across six dimensions: Leadership Effectiveness, Organizational Culture, Employee Engagement, Operational Effectiveness, Innovation and Adaptability, and Strategic Alignment. Each of 24 items is rated twice',

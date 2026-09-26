@@ -137,12 +137,21 @@ export interface OverallResult {
 export interface AssessmentResult {
   engineVersion: string;
   totalResponses: number;
+  /** Responses included in the overall index (rules v2+: eligible for every dimension). */
   validResponses: number;
+  /** Responses that contribute to no score at all. */
   excludedResponses: number;
+  /**
+   * Rules v2+ only. Responses contributing to at least one dimension, and how
+   * many of those are not in the overall index (eligible for some dimensions only).
+   * Each dimension's own respondent count is `dimensions[i].current.n`.
+   */
+  contributingResponses?: number;
+  partialResponses?: number;
   invalidRatings: number;
   /**
    * Why responses were excluded (present from engine 1.1). `belowDimensionThreshold`
-   * counts, per dimension key, excluded responses that fell short in that dimension
+   * counts, per dimension key, responses left out of that dimension because they fell short in it
    * (a response can fall short in several). `withNotApplicable` counts excluded
    * responses in which at least one shortfall involved N/A answers.
    */
@@ -151,6 +160,8 @@ export interface AssessmentResult {
     belowOverallThreshold: number;
     belowDimensionThreshold: Record<string, number>;
     withNotApplicable: number;
+    /** "per-dimension": respondents short in one dimension still count in their eligible dimensions. */
+    basis?: "per-dimension";
   };
   overall: OverallResult;
   dimensions: DimensionResult[];

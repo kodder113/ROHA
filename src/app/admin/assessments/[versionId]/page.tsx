@@ -14,6 +14,7 @@ import { ActionForm, SubmitButton } from "@/components/admin/action-form";
 import { SectionTitle, StatusBadge } from "@/components/admin/table";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { checkReadiness } from "../readiness";
+import { loadReleaseContext } from "../release";
 import {
   deleteAssessmentDraft,
   publishAssessmentVersion,
@@ -33,13 +34,13 @@ export default async function AssessmentVersionPage({ params }: { params: Promis
   const { data: version } = await admin.from("assessment_versions").select("*").eq("id", versionId).maybeSingle();
   if (!version) notFound();
 
-  const [{ data: dimensions }, { data: questions }, { data: qualitative }, { count: campaignCount }, { data: published }, { data: publishedRules }] = await Promise.all([
+  const [{ data: dimensions }, { data: questions }, { data: qualitative }, { count: campaignCount }, { data: published }, releaseCtx] = await Promise.all([
     admin.from("dimensions").select("*").eq("version_id", version.id).order("sort_order"),
     admin.from("questions").select("*").eq("version_id", version.id).order("sort_order"),
     admin.from("qualitative_questions").select("*").eq("version_id", version.id).order("sort_order"),
     admin.from("campaigns").select("id", { count: "exact", head: true }).eq("assessment_version_id", version.id),
     admin.from("assessment_versions").select("version_number").eq("template_id", version.template_id).eq("status", "published").order("version_number"),
-    admin.from("scoring_rule_versions").select("id, version_number, config").eq("status", "published"),
+    loadReleaseContext(admin, version, true),
   ]);
 
   const isDraft = version.status === "draft";
@@ -49,7 +50,7 @@ export default async function AssessmentVersionPage({ params }: { params: Promis
   const checks = checkReadiness({
     title: version.title,
     versionNumber: version.version_number,
-    publishedRules: publishedRules ?? [],
+    plan: releaseCtx.plan,
     dimensions: dims,
     questions: qs,
     qualitative: qual,
@@ -128,10 +129,14 @@ export default async function AssessmentVersionPage({ params }: { params: Promis
               </ul>
               <ActionForm
                 action={publishAssessmentVersion}
-                confirm={`Publish version ${version.version_number}? Its content becomes permanently read-only.`}
+                confirm={`Publish release: assessment version ${version.version_number}${releaseCtx.plan.rules ? `, scoring rules v${releaseCtx.plan.rules.version_number}` : ""}${releaseCtx.plan.ai ? ` and AI instructions v${releaseCtx.plan.ai.version_number}` : ""} together? Published content becomes permanently read-only.`}
                 className="space-y-3 border-t border-line pt-4"
               >
                 <input type="hidden" name="versionId" value={version.id} />
+                <p className="text-xs text-muted">
+                  Publishes the assessment version, its scoring rules and compatible AI reporting instructions in one transaction: all
+                  three change together or nothing changes. Website and application pages are refreshed immediately afterwards.
+                </p>
                 {(published ?? []).length > 0 ? (
                   <Label className="flex items-start gap-2 font-normal">
                     <Checkbox name="retirePrevious" defaultChecked className="mt-0.5" />
@@ -141,7 +146,7 @@ export default async function AssessmentVersionPage({ params }: { params: Promis
                     </span>
                   </Label>
                 ) : null}
-                <SubmitButton disabled={!ready}>Publish version {version.version_number}</SubmitButton>
+                <SubmitButton disabled={!ready}>Publish release (version {version.version_number})</SubmitButton>
               </ActionForm>
               <ActionForm action={deleteAssessmentDraft} confirm="Delete this draft permanently?" className="border-t border-line pt-4">
                 <input type="hidden" name="versionId" value={version.id} />

@@ -74,7 +74,7 @@ export default async function HomePage() {
             </p>
             <dl className="mt-10 grid max-w-lg grid-cols-3 gap-6 border-t border-navy-700 pt-6">
               {[
-                ["6", "dimensions of organizational health"],
+                [String(dimensions.length), "dimensions of organizational health"],
                 [String(questionCount), "statements, rated twice"],
                 ["5", "minimum respondents per reported group"],
               ].map(([value, label]) => (

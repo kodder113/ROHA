@@ -33,9 +33,13 @@ export function buildTask(snapshot: ReportInputSnapshot): string {
       return `${sec.letter}. ${sec.key} — the ${sec.itemKeys.join(", ")} aspect of ${dimName}${context}. Cite item-level figures from the input; do not calculate or state a separate score for this aspect.`;
     })
     .join("\n");
-  const excluded = snapshot.participation.excludedResponses
-    ? " Mention in limitations how many responses were excluded by the inclusion rule and why, using only the counts provided."
-    : "";
+  const excluded =
+    (snapshot.participation.excludedResponses
+      ? " Mention in limitations how many responses were excluded by the inclusion rule and why, using only the counts provided."
+      : "") +
+    (snapshot.participation.partialResponses
+      ? " Some respondents are counted only in the dimensions where they gave enough ratings: dimension scores use each dimension's respondent count, while the overall index uses only participation.validResponses respondents. State this in limitations and never describe the overall index as the average of the dimension scores."
+      : "");
   return `Write the ROHA Executive Organizational Intelligence Report for the organization described in the JSON below. This assessment version has ${snapshot.dimensions.length} dimensions and ${snapshot.items.length} items; refer only to the dimensions and items in the input.
 
 Sections to produce:

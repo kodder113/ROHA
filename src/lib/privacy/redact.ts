@@ -24,9 +24,12 @@ function redactDimension(p: DimensionPerspective, minGroupSize: number): Dimensi
  * Removes any statistic computed from fewer than `minGroupSize` respondents
  * (e.g. an item where most people in a group answered "Not applicable").
  * If the result as a whole is below the threshold, everything is withheld.
+ * With per-dimension inclusion (rules v2+), each dimension is judged on its own
+ * respondent count and the overall index on the respondents it includes.
  */
 export function redactSmallCells(result: AssessmentResult, minGroupSize: number): AssessmentResult {
-  if (result.validResponses < minGroupSize) {
+  const population = result.contributingResponses ?? result.validResponses;
+  if (population < minGroupSize) {
     return {
       ...result,
       overall: { ...result.overall, currentIndex: null, desiredIndex: null, band: null, dimensionsScored: 0, gap: { value: null, category: null, direction: null } },
@@ -45,8 +48,12 @@ export function redactSmallCells(result: AssessmentResult, minGroupSize: number)
       })),
     };
   }
+  const hideOverall = result.validResponses < minGroupSize;
   return {
     ...result,
+    overall: hideOverall
+      ? { ...result.overall, currentIndex: null, desiredIndex: null, band: null, gap: { value: null, category: null, direction: null } }
+      : result.overall,
     dimensions: result.dimensions.map((d) => {
       const current = redactDimension(d.current, minGroupSize);
       const desired = redactDimension(d.desired, minGroupSize);

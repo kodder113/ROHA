@@ -8,6 +8,7 @@ import { scrubPII, seededShuffle } from "@/lib/privacy/redact";
 import { toDimensionDefs, toProfiledResponses, toQuestionDefs, type ResponseItemRow, type ResponseRow } from "./mapping";
 import { analyzeSegments, scorePopulation, SEGMENT_ATTRIBUTES, TENURE_OPTIONS, type SegmentAttribute, type SegmentOption } from "./segments";
 import type { ParticipationSummary, QualitativeSummary, ResultsPayload, ResultsView, TrendPoint } from "./types";
+import { scoredPopulation } from "./exclusions";
 
 type Campaign = Tables<"campaigns">;
 
@@ -156,7 +157,7 @@ export async function computeResultsPayload(campaign: Campaign): Promise<Results
   const overall = scorePopulation(profiled, ctx);
 
   const segments: ResultsPayload["segments"] = {};
-  if (campaign.privacy_mode === "confidential" && overall.validResponses >= def.config.minGroupSize) {
+  if (campaign.privacy_mode === "confidential" && scoredPopulation(overall) >= def.config.minGroupSize) {
     const options = await loadSegmentOptions(campaign.id);
     for (const attribute of SEGMENT_ATTRIBUTES) {
       if (options[attribute].length === 0) continue;
@@ -254,7 +255,7 @@ export async function getResultsView(campaignInput: Campaign): Promise<ResultsVi
   }
   const payload = await getOrComputeResults(campaign);
   const participation = await loadParticipation(campaign, payload.overall.validResponses);
-  if (payload.overall.validResponses < payload.minGroupSize) {
+  if (scoredPopulation(payload.overall) < payload.minGroupSize) {
     return { status: "insufficient", participation, minGroupSize: payload.minGroupSize };
   }
   return { status: "ready", participation, payload };

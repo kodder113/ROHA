@@ -46,7 +46,12 @@ export function buildReportSnapshot(args: {
       expected: participation.expected,
       ratePercent: participation.rate === null ? null : round1(participation.rate),
       ...(exclusions
-        ? { excludedResponses: exclusions.excluded, inclusionRule: exclusions.rule, exclusionReasons: exclusions.reasons }
+        ? {
+            excludedResponses: exclusions.excluded,
+            inclusionRule: exclusions.rule,
+            exclusionReasons: exclusions.reasons,
+            ...(exclusions.perDimension ? { partialResponses: exclusions.partial } : {}),
+          }
         : {}),
     },
     overall: {

@@ -1,7 +1,7 @@
 /**
  * Segment (subgroup) analysis with privacy suppression. Pure — no I/O.
  */
-import { scoreAssessment, isValidResponse } from "@/lib/scoring/engine";
+import { scoreAssessment, contributesToScoring } from "@/lib/scoring/engine";
 import type { AssessmentResult, DimensionDef, QuestionDef, ResponseRecord, ScoringConfig } from "@/lib/scoring/types";
 import { computeSuppression, type SuppressionReason } from "@/lib/privacy/suppression";
 import { redactSmallCells } from "@/lib/privacy/redact";
@@ -36,7 +36,7 @@ export interface SegmentOption {
 export interface SegmentResult {
   key: string;
   label: string;
-  /** Valid responses in the group. Reported only when the group is visible. */
+  /** Contributing responses in the group. Reported only when the group is visible. */
   n: number | null;
   visible: boolean;
   reason: SuppressionReason | null;
@@ -74,7 +74,10 @@ export function analyzeSegments(
   ctx: ScoringContext,
 ): SegmentAnalysis {
   const k = ctx.config.minGroupSize;
-  const valid = responses.filter((r) => isValidResponse(r, ctx.questions, ctx.config));
+  // Group sizes count every respondent who contributes to a score (rules v1:
+  // valid responses; rules v2+: eligible for at least one dimension), so
+  // suppression protects everyone whose answers could appear in a group.
+  const valid = responses.filter((r) => contributesToScoring(r, ctx.questions, ctx.config));
   const byKey = new Map<string, ProfiledResponse[]>();
   const unspecified: ProfiledResponse[] = [];
   const optionKeys = new Set(options.map((o) => o.key));

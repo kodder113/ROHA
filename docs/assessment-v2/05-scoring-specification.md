@@ -1,6 +1,13 @@
 # 5. Scoring Specification — Assessment Version 2 with Scoring Rules Version 2 (draft)
 
-**Summary:** the scoring **formula is unchanged** (owner decision, September 26, 2026). What changes is the **inclusion rule**: a respondent is included only with at least four valid current-state ratings in **every** dimension. The earlier proposal of 13 valid ratings out of 25 was not approved. Both settings are stored in scoring rules v2 (draft), which also declares that it belongs to assessment version 2. Scoring engine 1.1 supports the per-dimension rule as an optional setting, so scoring rules v1 and all Version 1 results behave exactly as before.
+**Summary:** the scoring **formula is unchanged** (owner decision, September 26, 2026; framework frozen). What changes is **who is counted where** (owner decisions, September 26, 2026):
+
+- A respondent counts in a **dimension** when it has at least 4 valid current-state ratings in that dimension.
+- A respondent counts in the **overall organizational health index** only when that holds in **every** dimension.
+- A respondent who falls short in one dimension is **not discarded**: their answers still count in every dimension where they are eligible.
+- N/A remains available on LE3, OE3, SI3 and SI5.
+
+The earlier proposal of 13 valid ratings out of 25 was not approved. Scoring engine 1.2 implements this only for scoring rules that set `minValidCurrentPerDimension`, so scoring rules v1 and all Version 1 results behave exactly as before.
 
 ## 5.1 Inputs
 
@@ -19,7 +26,7 @@
 |---|---|
 | Normalized item score | ((mean valid rating − 1) / 4) × 100, per item and perspective |
 | Dimension score | Equal-weighted mean of the item scores with data (5 items) |
-| Overall health index | Equal-weighted mean of dimension scores: **each dimension 20%** (v1: 16.7%) |
+| Overall health index | Equal-weighted mean of dimension scores: **each dimension 20%** (v1: 16.7%). Rules v2: computed on the respondents eligible for every dimension (5.3) |
 | Gap | Desired − current, at item, dimension and overall level |
 | Gap categories | Aligned (< 10), notable (10–19.9), substantial (≥ 20 points), with direction |
 | Descriptive bands | 0–39, 40–59, 60–79, 80–100: interpretive aids, not validated cut-offs |
@@ -27,41 +34,48 @@
 
 ## 5.3 Inclusion rule (scoring rules v2)
 
-**Rule.** A response is included in scoring only if it has **at least 4 numeric current-state ratings in every one of the five dimensions**. Not Applicable and blank answers do not count as ratings. This implies at least 20 of 25 overall.
-
-| Setting | Rules v1 | Rules v2 (draft) | Reason |
+| Setting | Rules v1 | Rules v2 (draft) | Meaning |
 |---|---|---|---|
-| `minValidCurrentRatings` | 12 (of 24) | **20 (of 25)** | Implied by the per-dimension rule; kept so the overall minimum is explicit |
-| `minValidCurrentPerDimension` | not set | **4** | Owner decision: every dimension score of an included respondent rests on at least 4 of its 5 items |
-| `assessmentVersion` | not set (= 1) | **2** | Pairs the rules with assessment version 2; campaign creation picks the newest published rules for the assessment version being used |
+| `minValidCurrentPerDimension` | not set | **4** | Eligibility for a dimension: at least 4 of its 5 current-state ratings are numeric |
+| `minValidCurrentRatings` | 12 (of 24) | **20 (of 25)** | Overall minimum, implied by being eligible in all five dimensions |
+| `assessmentVersion` | not set (= 1) | **2** | Pairs the rules with assessment version 2 |
 | All other settings | — | Identical | — |
 
-**Only the current state decides inclusion.** Desired-state ratings do not affect whether a respondent is included. For included respondents, every current and desired rating is used, as in Version 1. Excluded respondents contribute to no score, gap, distribution or count other than the exclusion counts.
+**Populations.**
 
-**What the rule excludes in practice.** The survey requires every item to be answered with a rating or N/A before submission, so blank answers cannot occur through the survey. Exclusions therefore come only from N/A:
+| Statistic | Respondents used |
+|---|---|
+| Item results (current and desired) | Respondents eligible for the item's dimension |
+| Dimension score, gap, distribution, n | Respondents eligible for that dimension |
+| Overall current and desired index, overall gap | Respondents eligible for **every** dimension; the index is the equal-weighted mean of dimension scores **recomputed on this population** |
+| "Not counted" | Respondents eligible for no dimension |
 
-| Dimension | Items allowing N/A | Can the rule exclude a respondent? |
-|---|---|---|
-| LE | LE3 | No: at most one N/A, leaving 4 valid |
-| OC, EE | none | No |
-| OE | OE3 | No |
-| SI | **SI3 and SI5** | **Yes: a respondent who marks both SI3 and SI5 N/A has 3 valid ratings and is excluded** |
+Only current-state ratings decide eligibility; desired ratings of eligible respondents are always used. N/A and blank answers never count as ratings.
 
-**Owner decision needed before publication (listed in document 10):** accept that respondents answering N/A to both SI3 and SI5 are excluded from all results, or remove N/A from one of these items (an item edit requiring re-approval and, if the draft is already loaded, a new draft). Pilot data will show how often it happens.
+**What happens in practice.** The survey requires a rating or N/A for every item. N/A is offered on LE3, OE3, SI3 and SI5, so the only way to fall short is to answer N/A to both SI3 and SI5. Such a respondent now counts in LE, OC, EE and OE, but not in SI or the overall index. (This replaces the earlier behavior, which discarded the respondent entirely; the open owner decision on this point is resolved.)
 
-**Transparency.** Exclusions are reported, never silent:
+**Transparency.**
 
 | Where | What is shown |
 |---|---|
-| Dashboard (Valid responses tile and Methodology note) | Number excluded; the inclusion rule in words; counts by dimension ("1 response had too few current-state ratings in Strategic Alignment & Innovation"); how many shortfalls involved N/A |
-| PDF report (Methodology; Respondent Population and Participation; Limitations) | The same, plus a version-comparability limitation |
-| AI report input | Excluded count, rule and reasons (aggregate counts only); the AI is asked to mention them in limitations using only these counts |
-| Rules-based summary | A limitation stating the number excluded and the rule |
-| Segment (department, location, level, tenure) views | **No exclusion detail**, to avoid revealing N/A patterns within small groups |
+| Dashboard tiles | "In overall index: N", with "M more counted in some dimensions only" and "K not counted" |
+| Current health index tile | "Based on N respondents" |
+| Dimensional analysis | n per dimension |
+| Methodology note | The rule in words; that the index can differ from the average of the dimension scores; counts by dimension and cause, including N/A |
+| PDF | Methodology table (rule), participation section (populations and reasons), index section (population note), limitations (populations) |
+| AI report input | Counts only (`partialResponses`, per-dimension respondents, reasons); the AI must state the populations in limitations and never call the index the average of dimension scores |
+| Rules-based summary | The same limitation |
+| Segment views | Only per-cell respondent thresholds; no exclusion detail |
 
-Engine 1.1 records `exclusions` (rule text, below-overall count, per-dimension counts, count involving N/A) with each result. Results computed by engine 1.0 do not have this detail and are displayed as before.
+**Privacy (unchanged thresholds, applied to each population).**
+- Results are released only when at least 5 respondents contribute to some score.
+- Every dimension, item and segment cell is hidden when its own n is below 5.
+- The overall index is hidden when fewer than 5 respondents are eligible for every dimension.
+- Segment group sizes, and complementary suppression, count **every contributing respondent**, so a person counted only in some dimensions is still protected by the group threshold.
 
-**Historical results.** Stored results are reused whenever they were produced by the same engine major version, so the engine update does not recompute any Version 1 result.
+Tested in `src/lib/privacy/privacy.test.ts`.
+
+**Historical results.** Stored results are reused within the same engine major version, so the engine update recomputes no Version 1 result.
 
 ## 5.4 Strategic Alignment & Innovation
 
@@ -92,8 +106,35 @@ Per the completed review (document 4): desired ratings are retained and scored a
 
 ## 5.8 Verification
 
-- `src/lib/scoring/engine.test.ts`: per-dimension rule (4 valid per dimension included; SI3 + SI5 N/A excluded even with 23 valid overall; exclusion breakdown by dimension and cause; rules v1 unaffected; cache compatibility across engine minor versions).
+- `src/lib/scoring/engine.test.ts`: per-dimension eligibility; respondents counted in eligible dimensions only; overall index on the fully eligible population; the divergence case in 5.9; equivalence when everyone is eligible; rules v1 unaffected; cache compatibility.
+- `src/lib/privacy/privacy.test.ts`: suppression of the overall index, of dimensions and of segment cells for each population; segment sizes count every contributor.
+- `src/test/release-publication.integration.test.ts`: atomic release publication (document 8).
 - `src/lib/scoring/pairing.test.ts`: rules are paired with their assessment version; the publication checklist accepts 6 × 4 and 5 × 5 and requires matching published rules.
 - `src/test/assessment-v2-draft.integration.test.ts`: the draft creates 5 × 5 items with the approved wording and draft rules v2 (`minValidCurrentRatings` 20, `minValidCurrentPerDimension` 4, `assessmentVersion` 2; otherwise identical to v1); drafts are invisible to organizations; Version 1 content and historical scores are unchanged.
 - `src/lib/ai/ai.test.ts` and `src/lib/reports/pdf/render.test.ts`: reports and PDFs for five dimensions, including exclusions.
-- `e2e/v2-transition.mjs` (local database only): a Version 1 campaign, publication of rules v2 and assessment v2 through the admin portal, a Version 2 campaign with one excluded respondent, the history chart, a report and a PDF; Version 1 and demo results are byte-for-byte unchanged after publication.
+- `e2e/v2-transition.mjs` (local database only):
+  - a Version 1 campaign;
+  - the atomic release in the admin portal;
+  - immediate website refresh;
+  - a Version 2 campaign with N/A answers and one partially eligible respondent;
+  - the history chart, a report and a PDF.
+
+  Version 1 and demo results stay byte-for-byte unchanged after publication.
+
+## 5.9 Statistical implications of separate populations
+
+Allowing a respondent to count in some dimensions but not the overall index means that different statistics can rest on different respondents. The implications, and how ROHA handles each, are:
+
+| # | Implication | Consequence | Handling |
+|---|---|---|---|
+| 1 | **The overall index is not always the average of the displayed dimension scores.** It is computed on the respondents eligible everywhere; each displayed dimension score uses everyone eligible for that dimension. | Readers who average the dimension scores can get a different number. In an extreme test case (5 respondents rating 5 everywhere; 5 rating 1 but N/A on SI3 and SI5), the dimension scores average 60 while the overall index is 100. | The overall index keeps one consistent population, as the owner specified. The dashboard, PDF and AI instructions state that the two can differ, and give both respondent counts. Tested in `engine.test.ts` ("statistical implications…"). |
+| 2 | **Dimension scores are not all based on the same people.** Comparing SI with LE compares slightly different groups. | Differences between dimensions could partly reflect who answered, not only what they think. | Respondent counts (n) are shown for every dimension. In practice only respondents with N/A on both SI3 and SI5 differ, so any difference is limited to SI. |
+| 3 | **Selection bias.** Respondents who answer N/A to both SI3 and SI5 may differ systematically (for example, newer or front-line staff without visibility of organizational change). | The SI score and the overall index slightly under-represent them; their views still count in the other four dimensions. | The number affected is always reported. The pilot should record how often this happens and whether these respondents differ on other dimensions. |
+| 4 | **Gaps are consistent within each statistic.** Current and desired scores for a dimension (and for the index) use the same population. | A gap never mixes populations. | By construction; tested. |
+| 5 | **Small-group risk rises for partial populations.** A dimension can have fewer respondents than the whole group. | A cell could fall below 5 while others do not. | Every cell is suppressed independently when n < 5; the overall index is suppressed when its population is below 5; tested. |
+| 6 | **Subtraction across populations.** Organization-wide n for SI (e.g. 6) differs from n for LE (e.g. 7), which reveals how many people answered N/A to both SI3 and SI5. | This reveals a count, not any rating, and only at organization level or in groups that are already at least 5. | Accepted as the cost of transparency the owner requested. Segment views show no exclusion detail. N/A counts were already shown per item before this change. |
+| 7 | **Comparisons over time within Version 2.** If the share of partial respondents differs between two campaigns, index and dimension scores shift for population reasons. | Small, but real. | Respondent counts accompany every campaign's results; the history chart shows valid responses per campaign. |
+| 8 | **Equivalence when everyone is eligible.** | When no respondent falls short, the results are identical to the single-population method. | Tested (identical overall and dimension scores). |
+
+**Conclusion.** The approach keeps every usable answer, keeps the index on one consistent population, and makes the difference visible. Because N/A is available on only two SI items, the populations can differ only in SI and only by the respondents who marked both items N/A. The pilot should report that proportion; if it is material, the research specialist should review whether SI3 or SI5 needs N/A at all. That would be an item change, so it is outside the framework freeze unless a material defect is found.
+

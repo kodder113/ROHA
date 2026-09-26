@@ -186,6 +186,11 @@ export interface ReportInputSnapshot {
     excludedResponses?: number;
     inclusionRule?: string;
     exclusionReasons?: string[];
+    /**
+     * Scoring rules v2+: responses counted in some dimensions but not in the
+     * overall index. Each dimension's own count is `dimensions[i].respondents`.
+     */
+    partialResponses?: number;
   };
   overall: { currentIndex: number | null; desiredIndex: number | null; gap: number | null; band: string | null };
   dimensions: {

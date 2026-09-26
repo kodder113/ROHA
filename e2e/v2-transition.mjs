@@ -2,7 +2,7 @@
  * ROHA Version 2 transition journey — LOCAL SUPABASE ONLY.
  *
  *   npx supabase db reset            # fresh local database (migrations + demo seed)
- *   npm run build && npm run start
+ *   npm run build && npm run start   # rebuild each time: the page cache must start from Version 1
  *   SUPABASE_SERVICE_ROLE_KEY=<local key> node e2e/v2-transition.mjs
  *
  * Rehearses the publication of assessment version 2 on a local database:
@@ -32,7 +32,7 @@ if (!/@(127\.0\.0\.1|localhost):/.test(DB_URL) || !/^http:\/\/(localhost|127\.0\
 }
 
 mkdirSync(SHOTS, { recursive: true });
-const sql = (q) => execSync(`psql "${DB_URL}" -tAc ${JSON.stringify(q)}`, { encoding: "utf8" }).trim();
+const sql = (q) => execSync(`psql "${DB_URL}" -tAc ${JSON.stringify(q.replace(/\s+/g, " "))}`, { encoding: "utf8" }).trim();
 let step = 0;
 const log = (msg) => console.log(`\n[${++step}] ${msg}`);
 const assert = (cond, msg) => {
@@ -42,6 +42,14 @@ const assert = (cond, msg) => {
 
 if (sql("select count(*) from assessment_versions where version_number = 2") !== "0") {
   throw new Error("A version 2 already exists in the local database. Run `npx supabase db reset` first.");
+}
+
+/** Full-page screenshot after streamed content has rendered and entrance animations have finished. */
+async function snap(page, name, waitFor) {
+  if (waitFor) await page.locator(waitFor).first().waitFor({ state: "visible", timeout: 30000 });
+  await page.waitForLoadState("networkidle").catch(() => {});
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${SHOTS}/${name}`, fullPage: true });
 }
 
 async function verificationLink(email) {
@@ -77,7 +85,7 @@ async function register(page, email, orgName) {
 }
 
 /** Answers every section. `na` maps a 0-based section index to 0-based item positions answered N/A (current and desired). */
-async function answerSurvey(page, { seed, sections, na = {} }) {
+async function answerSurvey(page, { seed, sections, na = {}, shot = null }) {
   let s = seed;
   const rand = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
   await page.check('input[type="checkbox"]');
@@ -99,6 +107,10 @@ async function answerSurvey(page, { seed, sections, na = {} }) {
         const value = markNa ? "NA" : f === 1 ? String(4 + Math.floor(rand() * 2)) : String(2 + Math.floor(rand() * 3));
         await fs.locator(`label:has(input[value="${value}"])`).click();
       }
+    }
+    if (shot && section === sections - 1) {
+      await page.waitForTimeout(1200);
+      await page.screenshot({ path: shot, fullPage: true });
     }
     await page.click("text=Continue");
   }
@@ -176,20 +188,38 @@ try {
   await Promise.all([admin.waitForURL((u) => u.pathname.startsWith("/admin")), admin.click('button[type="submit"]')]);
 
   const v2Id = sql("select id from assessment_versions where version_number=2");
-  const rules2Id = sql("select id from scoring_rule_versions where version_number=2");
-  await admin.goto(`${BASE}/admin/assessments/${v2Id}`);
-  const beforeRules = await admin.content();
-  assert(beforeRules.includes("5 × 5 = 25 questions"), "checklist accepts the 5 × 5 structure");
-  assert(await admin.locator('button:has-text("Publish version 2")').isDisabled(), "assessment v2 cannot be published before scoring rules v2");
-  await admin.screenshot({ path: `${SHOTS}/admin-checklist-blocked.png`, fullPage: true });
+  const homeText = async () => (await (await fetch(`${BASE}/`)).text()).replace(/<[^>]+>/g, " ");
+  assert((await homeText()).includes("Six dimensions of organizational health"), "website shows the published Version 1 framework (cached page)");
 
-  log("Publish scoring rules v2, then assessment v2 (retiring v1 for new campaigns)");
-  await adminPublish(admin, `/admin/scoring/${rules2Id}`, "Publish v2");
-  assert(sql("select status from scoring_rule_versions where version_number=2") === "published", "scoring rules v2 published");
   await admin.goto(`${BASE}/admin/assessments/${v2Id}`);
-  await adminPublish(admin, `/admin/assessments/${v2Id}`, "Publish version 2");
-  assert(sql("select status from assessment_versions where version_number=2") === "published", "assessment v2 published");
-  assert(sql("select status from assessment_versions where version_number=1") === "retired", "assessment v1 retired for new campaigns");
+  const checklist = await admin.content();
+  assert(checklist.includes("5 × 5 = 25 questions"), "checklist accepts the 5 × 5 structure");
+  assert(checklist.includes("Scoring rules v2 (published with this release)"), "release plan includes scoring rules v2");
+  assert(checklist.includes("AI instructions v2 (activated with this release)"), "release plan includes compatible AI instructions v2");
+  await snap(admin, "01-admin-release-checklist.png", 'button:has-text("Publish release (version 2)")');
+
+  log("Publish the Version 2 release in one transaction (retiring v1 for new campaigns)");
+  await adminPublish(admin, `/admin/assessments/${v2Id}`, "Publish release (version 2)");
+  const statuses = sql(`select (select status from assessment_versions where version_number=2) || '/' || (select status from assessment_versions where version_number=1)
+    || '/' || (select status from scoring_rule_versions where version_number=2) || '/' || (select status from ai_report_instructions where version_number=2)
+    || '/' || (select status from ai_report_instructions where version_number=1)`);
+  assert(statuses === "published/retired/published/active/retired", `assessment v2, scoring rules v2 and AI instructions v2 changed together (${statuses})`);
+  assert(sql("select count(*) from audit_logs where action='assessment_release.published'") === "1", "one audit record for the release");
+  await snap(admin, "02-admin-release-published.png", "text=Published");
+
+  log("Website and application caches are refreshed immediately");
+  const home = await homeText();
+  assert(home.includes("Five dimensions of organizational health") && !home.includes("Six dimensions of organizational health"), "homepage shows five dimensions on the first request after publication");
+  assert(home.includes("25") && home.includes("Strategic Alignment &amp; Innovation"), "homepage shows 25 statements and the new dimension");
+  assert(/\b5\s+dimensions of organizational health/.test(home) && !/\b6\s+dimensions of organizational health/.test(home), "homepage statistics show 5 dimensions");
+  const framework = (await (await fetch(`${BASE}/framework`)).text());
+  assert(framework.includes("I have appropriate freedom to decide how to accomplish my work."), "framework page shows the Version 2 items immediately");
+  const publicCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const publicPage = await publicCtx.newPage();
+  await publicPage.goto(`${BASE}/`);
+  await snap(publicPage, "03-website-home.png", "text=Five dimensions of organizational health.");
+  await publicPage.goto(`${BASE}/framework`);
+  await snap(publicPage, "04-website-framework.png", "text=I have appropriate freedom to decide how to accomplish my work.");
 
   log("Version 1 results are untouched");
   assert(sql(`select payload::text from aggregated_results where campaign_id='${v1Campaign}'`) === v1Payload, "Version 1 campaign's stored results unchanged");
@@ -199,26 +229,32 @@ try {
   log("Organization runs a Version 2 assessment");
   const respondents = [
     ...Array.from({ length: 5 }, () => ({ sections: 5 })),
-    { sections: 5, na: { 4: [2, 4] } }, // SI3 and SI5 N/A: only 3 valid ratings in SI → excluded
+    { sections: 5, na: { 4: [2, 4] }, shot: `${SHOTS}/05-survey-section-5-with-na.png` }, // SI3 and SI5 N/A: 3 valid in SI → counted in LE, OC, EE, OE only
+    { sections: 5, na: { 0: [2], 3: [2] } }, // LE3 and OE3 N/A: still eligible everywhere
   ];
   const v2Campaign = await runCampaign(browser, owner, { name: "2026 Pilot", respondents });
   assert(
     sql(`select v.version_number || '/' || r.version_number from campaigns c join assessment_versions v on v.id=c.assessment_version_id join scoring_rule_versions r on r.id=c.scoring_rule_version_id where c.id='${v2Campaign}'`) === "2/2",
     "Version 2 campaign pinned to assessment v2 and scoring rules v2",
   );
-  assert(sql(`select count(*) from response_items ri join responses r on r.id=ri.response_id where r.campaign_id='${v2Campaign}'`) === "150", "150 item rows (6 × 25)");
+  assert(sql(`select count(*) from response_items ri join responses r on r.id=ri.response_id where r.campaign_id='${v2Campaign}'`) === "175", "175 item rows (7 × 25)");
+  assert(sql(`select count(*) from response_items ri join responses r on r.id=ri.response_id where r.campaign_id='${v2Campaign}' and ri.current_na`) === "4", "N/A preserved on LE3, OE3, SI3 and SI5");
   const v2 = JSON.parse(sql(`select payload::text from aggregated_results where campaign_id='${v2Campaign}'`)).overall;
   assert(v2.dimensions.length === 5 && v2.questions.length === 25, "results have 5 dimensions and 25 items");
-  assert(v2.validResponses === 5 && v2.excludedResponses === 1, "respondent with SI3 and SI5 marked N/A is excluded");
-  assert(v2.exclusions.belowDimensionThreshold.strategy_innovation === 1 && v2.exclusions.withNotApplicable === 1, "exclusion recorded by dimension and cause");
+  assert(v2.validResponses === 6 && v2.partialResponses === 1 && v2.excludedResponses === 0, "overall index: 6 respondents; 1 more counted in some dimensions; none discarded");
+  const nByDim = Object.fromEntries(v2.dimensions.map((d) => [d.key, d.current.n]));
+  assert(nByDim.leadership === 7 && nByDim.operations === 7 && nByDim.strategy_innovation === 6, `dimension respondent counts reported separately (${JSON.stringify(nByDim)})`);
+  assert(v2.exclusions.belowDimensionThreshold.strategy_innovation === 1 && v2.exclusions.withNotApplicable === 1, "shortfall recorded by dimension and cause");
 
   await owner.goto(`${BASE}/app/campaigns/${v2Campaign}/results`);
   await owner.waitForSelector("text=Current health index");
   const results = await owner.content();
   assert(results.includes("5 dimensions of organizational health"), "dashboard describes five dimensions");
   assert(results.includes("including at least 4 in every dimension"), "dashboard states the inclusion rule");
-  assert(results.includes("1 response had too few current-state ratings in Strategic Alignment &amp; Innovation"), "dashboard explains the exclusion");
-  await owner.screenshot({ path: `${SHOTS}/v2-results.png`, fullPage: true });
+  assert(results.includes("In overall index") && results.includes("1 more counted in some dimensions only"), "dashboard shows the overall-index population");
+  assert(results.includes("1 response had too few current-state ratings in Strategic Alignment &amp; Innovation and is not counted in that dimension"), "dashboard explains the per-dimension shortfall");
+  assert(results.includes("not always the average of the dimension scores"), "dashboard explains that populations can differ");
+  await snap(owner, "06-v2-results.png", "text=In overall index");
 
   log("History separates Version 1 and Version 2");
   await owner.goto(`${BASE}/app/history`);
@@ -227,7 +263,7 @@ try {
   assert(history.includes("vertical marker shows where a new assessment version begins") && history.includes("Version 2: dashed lines"), "chart marks the version boundary and styles versions separately");
   assert(history.includes("not directly comparable"), "chart explains that versions are not comparable");
   assert(history.includes(">v1<") && history.includes(">v2<"), "history table shows each assessment's version");
-  await owner.screenshot({ path: `${SHOTS}/history.png`, fullPage: true });
+  await snap(owner, "07-history.png", "text=Completed assessments");
 
   log("Executive report and PDF for Version 2");
   await owner.goto(`${BASE}/app/campaigns/${v2Campaign}/report`);
@@ -240,7 +276,8 @@ try {
   await owner.waitForSelector("text=30 / 60 / 90-day action plan");
   const report = await owner.content();
   assert(report.includes("items SI3–SI5") && report.includes("No separate score is calculated"), "section H covers SI3–SI5 without a sub-score");
-  await owner.screenshot({ path: `${SHOTS}/v2-report.png`, fullPage: true });
+  assert(report.includes("counted only in the dimensions"), "report limitations explain the separate populations");
+  await snap(owner, "08-v2-report.png", "text=30 / 60 / 90-day action plan");
   const reportId = sql(`select id from ai_reports where campaign_id='${v2Campaign}' and status='completed' order by created_at desc limit 1`);
   const pdf = await owner.request.get(`${BASE}/api/reports/${reportId}/pdf`);
   const body = await pdf.body();

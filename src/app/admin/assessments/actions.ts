@@ -4,7 +4,9 @@ import { z } from "zod";
 import type { ActionState } from "@/components/admin/action-state";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import { AdminActionError, runAdminAction, zCheckbox, zId, zOptText, zText } from "../_lib/action";
+import { revalidatePath } from "next/cache";
 import { checkReadiness } from "./readiness";
+import { loadReleaseContext } from "./release";
 
 async function requireDraft(admin: AdminSupabase, versionId: string) {
   const { data, error } = await admin.from("assessment_versions").select("*").eq("id", versionId).maybeSingle();
@@ -204,50 +206,43 @@ export async function updateQualitativeQuestions(_prev: ActionState, formData: F
   });
 }
 
+/**
+ * Publishes an assessment release atomically: the assessment version, its
+ * scoring rules and compatible AI reporting instructions change together in
+ * one database transaction (publish_assessment_release), or not at all. On
+ * success every cached page is invalidated so the website and application
+ * show the new framework immediately.
+ */
 export async function publishAssessmentVersion(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  return runAdminAction(formData, z.object({ versionId: zId, retirePrevious: zCheckbox }), async ({ admin, input, audit }) => {
+  return runAdminAction(formData, z.object({ versionId: zId, retirePrevious: zCheckbox }), async ({ admin, input, user }) => {
     const v = await requireDraft(admin, input.versionId);
-    const [{ data: dimensions }, { data: questions }, { data: qualitative }, { data: publishedRules }] = await Promise.all([
-      admin.from("dimensions").select("id, name, description, code").eq("version_id", v.id),
-      admin.from("questions").select("dimension_id, prompt, focus").eq("version_id", v.id),
-      admin.from("qualitative_questions").select("prompt").eq("version_id", v.id),
-      admin.from("scoring_rule_versions").select("id, version_number, config").eq("status", "published"),
-    ]);
-    const checks = checkReadiness({
-      title: v.title,
-      versionNumber: v.version_number,
-      publishedRules: publishedRules ?? [],
-      dimensions: dimensions ?? [],
-      questions: questions ?? [],
-      qualitative: qualitative ?? [],
-    });
+    const ctx = await loadReleaseContext(admin, v, input.retirePrevious);
+    const checks = checkReadiness({ title: v.title, versionNumber: v.version_number, ...ctx });
     const failing = checks.filter((c) => !c.ok);
-    if (failing.length) {
+    if (failing.length || !ctx.plan.rules || !ctx.plan.ai) {
       throw new AdminActionError("This version is not ready to publish.", failing.map((c) => `${c.label}${c.detail ? ` — ${c.detail}` : ""}`));
     }
 
-    const { error } = await admin.from("assessment_versions").update({ status: "published" }).eq("id", v.id).eq("status", "draft");
-    if (error) throw error;
-
-    let retired: number[] = [];
-    if (input.retirePrevious) {
-      const { data: prev, error: retireError } = await admin
-        .from("assessment_versions")
-        .update({ status: "retired" })
-        .eq("template_id", v.template_id)
-        .eq("status", "published")
-        .neq("id", v.id)
-        .select("version_number");
-      if (retireError) throw retireError;
-      retired = (prev ?? []).map((p) => p.version_number);
-    }
-    await audit({
-      action: "assessment_version.published",
-      targetType: "assessment_version",
-      targetId: v.id,
-      metadata: { version_number: v.version_number, retired_versions: retired },
+    const { data, error } = await admin.rpc("publish_assessment_release", {
+      p_assessment_version_id: v.id,
+      p_scoring_rules_id: ctx.plan.rules.id,
+      p_ai_instructions_id: ctx.plan.ai.id,
+      p_retire_previous: input.retirePrevious,
+      p_actor_user_id: user.id,
+      p_actor_email: user.email ?? "",
     });
-    return `Version ${v.version_number} published${retired.length ? `; retired version ${retired.join(", ")}` : ""}. New campaigns will use it; existing campaigns keep their pinned version.`;
+    if (error) {
+      throw new AdminActionError("The release was not published. Nothing was changed.", [error.message.replace(/^ROHA_RELEASE:\s*/, "")]);
+    }
+    const summary = data as { scoring_rules_version: number; ai_instructions_version: number; retired_assessment_versions: number[] };
+
+    // Every page that shows framework content or counts (website, app, admin).
+    revalidatePath("/", "layout");
+
+    const retired = summary.retired_assessment_versions ?? [];
+    return `Version ${v.version_number} published with scoring rules v${summary.scoring_rules_version} and AI instructions v${summary.ai_instructions_version}${
+      retired.length ? `; retired version ${retired.join(", ")}` : ""
+    }. Website and application caches were refreshed. Existing campaigns keep their pinned versions.`;
   });
 }
 

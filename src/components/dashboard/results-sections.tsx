@@ -39,7 +39,13 @@ export function HealthOverview({ result, participation }: { result: AssessmentRe
           tone="navy"
           label="Current health index"
           value={formatScore(overall.currentIndex)}
-          hint={overall.band ? overall.band : "Band not available"}
+          hint={
+            result.partialResponses !== undefined
+              ? `${overall.band ?? "Band not available"} · based on ${result.validResponses.toLocaleString("en-US")} respondents`
+              : overall.band
+                ? overall.band
+                : "Band not available"
+          }
           className="min-[420px]:col-span-2 lg:col-span-1"
         />
         <StatTile tone="emerald" label="Desired health index" value={formatScore(overall.desiredIndex)} hint="Where employees would like to be" />
@@ -57,15 +63,30 @@ export function HealthOverview({ result, participation }: { result: AssessmentRe
               : "Responses received"
           }
         />
-        <StatTile
-          label="Valid responses"
-          value={result.validResponses.toLocaleString("en-US")}
-          hint={
-            result.excludedResponses > 0
-              ? `${result.excludedResponses.toLocaleString("en-US")} excluded under the inclusion rule (see Methodology)`
-              : "No responses excluded"
-          }
-        />
+        {result.partialResponses !== undefined ? (
+          <StatTile
+            label="In overall index"
+            value={result.validResponses.toLocaleString("en-US")}
+            hint={
+              [
+                result.partialResponses > 0 ? `${result.partialResponses.toLocaleString("en-US")} more counted in some dimensions only` : null,
+                result.excludedResponses > 0 ? `${result.excludedResponses.toLocaleString("en-US")} not counted` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "Every response counted in every dimension"
+            }
+          />
+        ) : (
+          <StatTile
+            label="Valid responses"
+            value={result.validResponses.toLocaleString("en-US")}
+            hint={
+              result.excludedResponses > 0
+                ? `${result.excludedResponses.toLocaleString("en-US")} excluded under the inclusion rule (see Methodology)`
+                : "No responses excluded"
+            }
+          />
+        )}
       </div>
     </section>
   );
@@ -105,7 +126,7 @@ export function DimensionalAnalysis({ dimensions, scopeLabel }: { dimensions: Di
     <Card className="animate-fade-up">
       <CardHeader
         title="Dimensional analysis"
-        description={`${dimensions.length} dimensions of organizational health — ${scopeLabel}. The bar shows how current-state ratings are spread from strongly disagree to strongly agree.`}
+        description={`${dimensions.length} dimensions of organizational health — ${scopeLabel}. The bar shows how current-state ratings are spread from strongly disagree to strongly agree; n is the number of respondents counted in each dimension.`}
       />
       {/* Table (md and up) */}
       <div className="hidden overflow-x-auto md:block">
@@ -384,7 +405,9 @@ export function MethodologyNote({ payload }: { payload: ResultsPayload }) {
         <div className="mt-1">
           <p>
             Inclusion rule: a response is scored only with {exclusions.rule}.{" "}
-            {exclusions.excluded > 0
+            {exclusions.perDimension
+              ? `The overall index is based on ${payload.overall.validResponses.toLocaleString("en-US")} respondents; each dimension shows its own respondent count (n), which can be larger. Because the populations can differ, the overall index is not always the average of the dimension scores shown.`
+              : exclusions.excluded > 0
               ? `${exclusions.excluded.toLocaleString("en-US")} submitted response${exclusions.excluded === 1 ? " was" : "s were"} excluded.`
               : "No submitted responses were excluded."}
           </p>

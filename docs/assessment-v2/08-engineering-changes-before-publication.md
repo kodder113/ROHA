@@ -2,7 +2,9 @@
 
 **Status (September 26, 2026):** all twelve changes are **implemented and tested** on the development branch. **Nothing has been published.** No production database was touched; the Version 2 draft loader has not been run outside local test databases. Version 1 behavior and every stored Version 1 result are unchanged.
 
-**Safety lock (replaces the old 6 × 4 lock):** the super-admin checklist accepts a five-by-five version only when **published scoring rules declaring that assessment version** exist. A five-by-five version therefore cannot be published by accident, and scoring rules v2 cannot be picked up by Version 1 campaigns (or vice versa).
+**Framework freeze (September 26, 2026):** dimensions, questions, scoring formula and visual identity are frozen. The final adjustments below (items 13–16) change only how the approved rules are applied and published.
+
+**Safety lock:** assessment v2 can be published only through the release workflow (item 14). The workflow requires scoring rules declaring assessment version 2 and AI instructions that support every version left in use. All three change in one transaction.
 
 | # | Area | File(s) | Change made | Verified by |
 |---|---|---|---|---|
@@ -19,16 +21,18 @@
 | 9 | Survey welcome text | `src/components/survey/survey-app.tsx` | Number of areas, their names and the statement count from the survey definition | e2e (survey screenshots) |
 | 10 | Public website copy | home, framework, features, how it works, about, terms; new-campaign page; illustrative chart | Counts come from the published framework or are worded without a number. Pages revalidate hourly, so after publication the website can show the old counts for up to an hour | Build; e2e homepage |
 | 11 | Brand mark | `src/components/brand/logo.tsx`, `src/app/icon.svg`, `src/lib/reports/pdf/charts.tsx`, `src/components/marketing/section.tsx` | Owner direction: the six-segment hexagon is replaced by an abstract mark (an open ring around an emerald core, with an emerald point in the opening) that does not depict a number of dimensions. The hexagon background pattern is replaced by a dot grid | Visual check (app, PDF) |
-| 12 | Tests | `engine.test.ts`, `pairing.test.ts`, `ai.test.ts`, `render.test.ts`, `assessment-v2-draft.integration.test.ts`, `e2e/v2-transition.mjs` | Five-by-five fixtures (`src/lib/scoring/fixtures.ts`), 104 automated tests; a local end-to-end rehearsal of publication | Run on September 26, 2026: all passing; e2e Version 1 journey and Version 2 transition passing |
+| 13 | **Partial inclusion** (final adjustment 3) | `src/lib/scoring/engine.ts` (engine 1.2), `src/lib/privacy/redact.ts`, `src/lib/results/{segments,service,exclusions}.ts`, dashboard, snapshot, reports, PDF | Respondents count in every dimension where they are eligible; the overall index uses only respondents eligible everywhere; counts shown per dimension and for the index; privacy thresholds applied to each population; segment sizes count every contributor | `engine.test.ts`, `privacy.test.ts`, `ai.test.ts`; e2e |
+| 14 | **Atomic release publication** (final adjustment 5) | `supabase/migrations/20260927000100_atomic_release_publication.sql`, `src/app/admin/assessments/{actions,readiness,release}.ts`, admin page, `src/app/admin/ai/actions.ts`, `src/lib/reports/service.ts` | New migration (schema and function only). AI instructions declare `supported_assessment_versions` (existing: {1}; v2 draft: {1, 2}). `publish_assessment_release()` locks and validates the assessment version, scoring rules and AI instructions, then publishes and activates them with one audit record, in one transaction. The admin "Publish release" button uses it. Activating incompatible instructions manually is refused, and AI reports refuse instructions that do not support the campaign's version | `release-publication.integration.test.ts` (7 tests, including rollback on a failure mid-transaction and service-role-only execution); `pairing.test.ts`; e2e |
+| 15 | **Immediate cache invalidation** (final adjustment 6) | `src/app/admin/assessments/actions.ts` | After a successful release, `revalidatePath("/", "layout")` invalidates every cached page. The three hourly-revalidated pages (home, framework, pricing) are the only cached pages. The hero statistic on the home page was also made data-driven | e2e: the homepage and framework page show Version 2 on the first request after publication |
+| 16 | N/A preserved (final adjustment 1) | — | N/A remains on LE3, OE3, SI3 and SI5; no item changed | e2e: N/A answers stored on all four items |
+| 12 | Tests | `engine.test.ts`, `pairing.test.ts`, `ai.test.ts`, `render.test.ts`, `assessment-v2-draft.integration.test.ts`, `e2e/v2-transition.mjs` | Five-by-five fixtures (`src/lib/scoring/fixtures.ts`); 122 automated tests; a local end-to-end rehearsal of publication | Run on September 26, 2026: all passing; the Version 1 end-to-end journey and the Version 2 transition rehearsal both pass |
 
 **Not changed:** survey submission function, privacy and suppression logic, database schema, migrations, Version 1 content, scoring rules v1, AI instructions v1.
 
 **Not implemented (optional, listed for completeness):** item-detail captions grouping SI into "Alignment (SI1–SI2)" and "Adaptive innovation (SI3–SI5)"; a note on negative SI gaps in the gap chart; an item-level crosswalk trend for identical items across versions; a synthetic Version 2 demonstration campaign.
 
-**Order of operations for publication** (details and owners in [document 10](10-publication-readiness-report.md)):
-1. Clear the IP, research and owner sign-off blockers.
-2. Deploy this code to production and confirm production credentials.
-3. Run the draft loader in production (creates drafts only).
-4. Review in Super Admin; publish **scoring rules v2 first**, then assessment v2 (retiring v1 for new campaigns).
-5. Activate AI instructions v2.
-6. Confirm the website shows five dimensions after revalidation.
+**Order of operations for publication** (details in [document 10](10-publication-readiness-report.md)):
+1. Clear the external blockers (IP, research, trademark, legal pages, sign-offs).
+2. Deploy this code to production (applies migration 20260927000100) and complete the credential tests.
+3. Back up the database; run the draft loader once (creates drafts only).
+4. In Super Admin, open assessment version 2 and use **Publish release**. This publishes assessment v2, scoring rules v2 and AI instructions v2 together and refreshes the website.

@@ -1,12 +1,54 @@
 import { parseScoringConfig } from "@/lib/scoring/config";
 import { pickRulesForAssessment, type RulesRow } from "@/lib/scoring/pairing";
 
+export interface RulesCandidate extends RulesRow {
+  status: string;
+}
+
+export interface AiInstructionsCandidate {
+  id: string;
+  version_number: number;
+  status: string;
+  supported_assessment_versions: number[];
+}
+
+export interface ReleasePlan {
+  rules: RulesCandidate | null;
+  ai: AiInstructionsCandidate | null;
+  /** Assessment versions that will be available for new campaigns after the release. */
+  versionsInUse: number[];
+}
+
+/**
+ * Chooses what an assessment release publishes together: the newest draft or
+ * published scoring rules designed for the version, and AI reporting
+ * instructions (the active version if compatible, otherwise the newest
+ * compatible draft) that support every assessment version still in use.
+ */
+export function planRelease(
+  versionNumber: number,
+  rules: RulesCandidate[],
+  ai: AiInstructionsCandidate[],
+  otherPublishedVersions: number[],
+  retirePrevious: boolean,
+): ReleasePlan {
+  const versionsInUse = [...(retirePrevious ? [] : otherPublishedVersions), versionNumber].sort((a, b) => a - b);
+  const pickedRules = pickRulesForAssessment(
+    versionNumber,
+    rules.filter((r) => r.status === "draft" || r.status === "published"),
+  );
+  const supports = (a: AiInstructionsCandidate) => versionsInUse.every((v) => a.supported_assessment_versions.includes(v));
+  const active = ai.find((a) => a.status === "active" && supports(a));
+  const draft = ai.filter((a) => a.status === "draft" && supports(a)).sort((a, b) => b.version_number - a.version_number)[0];
+  return { rules: pickedRules, ai: active ?? draft ?? null, versionsInUse };
+}
+
 /** Publication checklist for an assessment version (shared by page and actions). */
 export interface ReadinessInput {
   title: string;
   versionNumber: number;
-  /** Published scoring rule versions (any assessment version). */
-  publishedRules: RulesRow[];
+  /** The release plan (scoring rules and AI instructions published with the version). */
+  plan: ReleasePlan;
   dimensions: { id: string; name: string; description: string; code?: string }[];
   questions: { dimension_id: string; prompt: string; focus: string }[];
   qualitative: { prompt: string }[];
@@ -40,8 +82,8 @@ export function checkReadiness(v: ReadinessInput): ReadinessCheck[] {
   const incompleteDims = v.dimensions.filter((d) => !d.name.trim() || !d.description.trim()).length;
   const qualitativeOk = v.qualitative.length > 0 && v.qualitative.every((q) => q.prompt.trim().length > 0);
 
-  const rules = pickRulesForAssessment(v.versionNumber, v.publishedRules);
-  let rulesDetail = `No published scoring rules declare assessment version ${v.versionNumber}. Publish matching scoring rules first.`;
+  const rules = v.plan.rules;
+  let rulesDetail = `No draft or published scoring rules declare assessment version ${v.versionNumber}.`;
   let rulesOk = false;
   if (rules) {
     const cfg = parseScoringConfig(rules.config);
@@ -49,7 +91,7 @@ export function checkReadiness(v: ReadinessInput): ReadinessCheck[] {
     const achievable = cfg.minValidCurrentRatings <= v.questions.length && (perDimMin === undefined || perDimMin <= perDimension);
     rulesOk = achievable;
     rulesDetail = achievable
-      ? `Scoring rules v${rules.version_number}`
+      ? `Scoring rules v${rules.version_number} (${rules.status === "draft" ? "published with this release" : "already published"})`
       : `Scoring rules v${rules.version_number} require more valid ratings than this version has`;
   }
 
@@ -71,6 +113,13 @@ export function checkReadiness(v: ReadinessInput): ReadinessCheck[] {
     { label: "Every question prompt is 10–400 characters", ok: badPrompts === 0, detail: badPrompts ? `${badPrompts} invalid` : undefined },
     { label: "Every question has a focus", ok: missingFocus === 0, detail: missingFocus ? `${missingFocus} missing` : undefined },
     { label: "Open-ended questions have prompts", ok: qualitativeOk, detail: `${v.qualitative.length} open-ended questions` },
-    { label: "Published scoring rules exist for this version and fit its structure", ok: rulesOk, detail: rulesDetail },
+    { label: "Scoring rules for this version exist and fit its structure", ok: rulesOk, detail: rulesDetail },
+    {
+      label: "Compatible AI reporting instructions",
+      ok: v.plan.ai !== null,
+      detail: v.plan.ai
+        ? `AI instructions v${v.plan.ai.version_number} (${v.plan.ai.status === "active" ? "already active" : "activated with this release"}) support assessment version${v.plan.versionsInUse.length > 1 ? "s" : ""} ${v.plan.versionsInUse.join(", ")}`
+        : `No active or draft AI instructions support assessment version${v.plan.versionsInUse.length > 1 ? "s" : ""} ${v.plan.versionsInUse.join(", ")}`,
+    },
   ];
 }

@@ -13,6 +13,16 @@
  *  - A response is valid only if it contains at least `minValidCurrentRatings`
  *    numeric current-state ratings; invalid responses are excluded entirely.
  *
+ * Scoring rules v2+ (`minValidCurrentPerDimension` set) — partial inclusion:
+ *  - A respondent is eligible for a dimension when it has at least
+ *    `minValidCurrentPerDimension` numeric current ratings in that dimension.
+ *  - Item and dimension statistics use the respondents eligible for that
+ *    dimension, so an eligible dimension still counts when another falls short.
+ *  - The overall index uses only respondents eligible for EVERY dimension (and
+ *    meeting `minValidCurrentRatings`): it is the weighted mean of dimension
+ *    scores recomputed on that population. It can therefore differ from the
+ *    mean of the displayed dimension scores; both populations are reported.
+ *
  * The engine is pure and has no I/O, so it can be tested and audited in isolation.
  */
 import type {
@@ -30,7 +40,7 @@ import type {
   ScoringConfig,
 } from "./types";
 
-export const ENGINE_VERSION = "roha-scoring-engine/1.1.0";
+export const ENGINE_VERSION = "roha-scoring-engine/1.2.0";
 
 /** Major version of an engine version string; cached results are reused within a major version. */
 export function engineMajor(version: string): string {
@@ -139,6 +149,22 @@ export function checkResponseValidity(response: ResponseRecord, questions: Quest
   return { valid: !belowOverall && shortDimensions.length === 0, belowOverall, shortDimensions, shortfallInvolvesNA };
 }
 
+/** True when the rules use per-dimension eligibility (scoring rules v2+). */
+export function usesPartialInclusion(config: ScoringConfig): boolean {
+  return config.minValidCurrentPerDimension !== undefined;
+}
+
+/**
+ * Whether a response contributes to any score. Rules v1: only valid responses.
+ * Rules v2+: any response eligible for at least one dimension.
+ */
+export function contributesToScoring(response: ResponseRecord, questions: QuestionDef[], config: ScoringConfig): boolean {
+  const check = checkResponseValidity(response, questions, config);
+  if (!usesPartialInclusion(config)) return check.valid;
+  const dimensionIds = new Set(questions.map((q) => q.dimensionId));
+  return check.shortDimensions.length < dimensionIds.size;
+}
+
 /** Counts numeric current-state ratings (overall and, where configured, per dimension) to decide validity. */
 export function isValidResponse(response: ResponseRecord, questions: QuestionDef[], config: ScoringConfig): boolean {
   return checkResponseValidity(response, questions, config).valid;
@@ -147,7 +173,7 @@ export function isValidResponse(response: ResponseRecord, questions: QuestionDef
 export function describeInclusionRule(config: ScoringConfig, questionCount: number): string {
   const overall = `at least ${Math.min(config.minValidCurrentRatings, questionCount)} numeric current-state ratings`;
   return config.minValidCurrentPerDimension !== undefined
-    ? `${overall}, including at least ${config.minValidCurrentPerDimension} in every dimension; Not Applicable does not count as a rating`
+    ? `${overall}, including at least ${config.minValidCurrentPerDimension} in every dimension, for the overall index; a dimension also includes any respondent with at least ${config.minValidCurrentPerDimension} numeric current-state ratings in that dimension; Not Applicable does not count as a rating`
     : `${overall}; Not Applicable does not count as a rating`;
 }
 
@@ -241,6 +267,13 @@ export function scoreAssessment({ dimensions, questions, responses, config }: Sc
 
   const checks = responses.map((r) => checkResponseValidity(r, sortedQuestions, config));
   const valid = responses.filter((_, i) => checks[i].valid);
+  const partial = usesPartialInclusion(config);
+  // Population for each dimension: rules v1 use the valid responses; rules v2+
+  // use every response eligible for that dimension.
+  const populationFor = (dimId: string): ResponseRecord[] =>
+    partial ? responses.filter((_, i) => !checks[i].shortDimensions.includes(dimId)) : valid;
+  const populations = new Map(sortedDimensions.map((d) => [d.id, populationFor(d.id)]));
+  const contributing = partial ? responses.filter((_, i) => checks[i].shortDimensions.length < sortedDimensions.length) : valid;
   const invalidCounter = { count: 0 };
   const belowDimensionThreshold: Record<string, number> = {};
   for (const c of checks) {
@@ -253,8 +286,9 @@ export function scoreAssessment({ dimensions, questions, responses, config }: Sc
   const questionResults = new Map<string, QuestionResult>();
   for (const q of sortedQuestions) {
     const dim = dimById.get(q.dimensionId);
-    const current = perspectiveStats(valid, q.id, "current", config, invalidCounter);
-    const desired = perspectiveStats(valid, q.id, "desired", config, invalidCounter);
+    const population = populations.get(q.dimensionId) ?? valid;
+    const current = perspectiveStats(population, q.id, "current", config, invalidCounter);
+    const desired = perspectiveStats(population, q.id, "desired", config, invalidCounter);
     questionResults.set(q.id, {
       questionId: q.id,
       key: q.key,
@@ -269,8 +303,9 @@ export function scoreAssessment({ dimensions, questions, responses, config }: Sc
 
   const dimensionResults: DimensionResult[] = sortedDimensions.map((d) => {
     const dimQuestions = sortedQuestions.filter((q) => q.dimensionId === d.id);
-    const current = dimensionPerspective(valid, dimQuestions, questionResults, "current", config);
-    const desired = dimensionPerspective(valid, dimQuestions, questionResults, "desired", config);
+    const population = populations.get(d.id) ?? valid;
+    const current = dimensionPerspective(population, dimQuestions, questionResults, "current", config);
+    const desired = dimensionPerspective(population, dimQuestions, questionResults, "desired", config);
     return {
       dimensionId: d.id,
       key: d.key,
@@ -283,28 +318,47 @@ export function scoreAssessment({ dimensions, questions, responses, config }: Sc
     };
   });
 
+  // Overall index. Rules v1: mean of the dimension scores (one population).
+  // Rules v2+: dimension scores recomputed on the respondents eligible for
+  // every dimension, so the index describes one consistent population.
+  const overallBasis = partial
+    ? sortedDimensions.map((d) => {
+        const dimQuestions = sortedQuestions.filter((q) => q.dimensionId === d.id);
+        const scratch = { count: 0 };
+        const itemStats = new Map<string, QuestionResult>(
+          dimQuestions.map((q) => {
+            const current = perspectiveStats(valid, q.id, "current", config, scratch);
+            const desired = perspectiveStats(valid, q.id, "desired", config, scratch);
+            return [q.id, { ...questionResults.get(q.id)!, current, desired }];
+          }),
+        );
+        return {
+          key: d.key,
+          current: dimensionPerspective(valid, dimQuestions, itemStats, "current", config).score,
+          desired: dimensionPerspective(valid, dimQuestions, itemStats, "desired", config).score,
+        };
+      })
+    : dimensionResults.map((d) => ({ key: d.key, current: d.current.score, desired: d.desired.score }));
   const overallCurrent = weightedMean(
-    dimensionResults
-      .filter((d) => d.current.score !== null)
-      .map((d) => ({ value: d.current.score!, weight: config.dimensionWeights[d.key] ?? 1 })),
+    overallBasis.filter((d) => d.current !== null).map((d) => ({ value: d.current!, weight: config.dimensionWeights[d.key] ?? 1 })),
   );
   const overallDesired = weightedMean(
-    dimensionResults
-      .filter((d) => d.desired.score !== null)
-      .map((d) => ({ value: d.desired.score!, weight: config.dimensionWeights[d.key] ?? 1 })),
+    overallBasis.filter((d) => d.desired !== null).map((d) => ({ value: d.desired!, weight: config.dimensionWeights[d.key] ?? 1 })),
   );
 
   return {
     engineVersion: ENGINE_VERSION,
     totalResponses: responses.length,
     validResponses: valid.length,
-    excludedResponses: responses.length - valid.length,
+    excludedResponses: responses.length - contributing.length,
+    ...(partial ? { contributingResponses: contributing.length, partialResponses: contributing.length - valid.length } : {}),
     invalidRatings: invalidCounter.count,
     exclusions: {
       rule: describeInclusionRule(config, sortedQuestions.length),
       belowOverallThreshold: checks.filter((c) => c.belowOverall).length,
       belowDimensionThreshold,
       withNotApplicable: checks.filter((c) => !c.valid && c.shortfallInvolvesNA).length,
+      ...(partial ? { basis: "per-dimension" as const } : {}),
     },
     overall: {
       currentIndex: overallCurrent,
