@@ -661,7 +661,7 @@ if (is_file(__DIR__ . '/msa2026/index.php')) require_once __DIR__ . '/msa2026/in
     <h2 class="reveal" data-en="Our Framework &amp; Research" data-es="Nuestro Marco de Trabajo e Investigación">Our Framework &amp; Research</h2>
     <p class="section-lede reveal" style="color:var(--muted)"><span data-en="Proprietary thinking tools that make our advisory work more rigorous — and more accountable." data-es="Herramientas de pensamiento propietarias que hacen nuestro trabajo de asesoría más riguroso y responsable.">Proprietary thinking tools that make our advisory work more rigorous — and more accountable.</span></p>
 
-    <div class="grid cards" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+    <div class="grid cards" style="grid-template-columns:1fr">
       <a class="card highlight reveal" href="https://flame.droscarrodriguez.com" target="_blank" rel="noopener">
         <div class="card-head">
           <div class="card-icon" aria-hidden="true">
@@ -673,17 +673,65 @@ if (is_file(__DIR__ . '/msa2026/index.php')) require_once __DIR__ . '/msa2026/in
         <div style="text-align:center;margin-top:8px"><span class="btn btn-outline" data-en="Try the AI Audit Tool →" data-es="Probar la Herramienta de Auditoría →">Try the AI Audit Tool →</span></div>
       </a>
 
-      <a class="card reveal" href="https://www.amazon.com/dp/B0F4W4V6QK" target="_blank" rel="noopener">
-        <div class="card-head">
-          <div class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          </div>
-          <h3 data-en="Leading With Machines" data-es="Liderando Con Máquinas">Leading With Machines</h3>
-        </div>
-        <p><em>How to Stay Human When AI Makes the Decisions</em> — published May 2026. A practical guide for leaders navigating AI adoption without surrendering judgment, accountability, or values. Available on Amazon.</p>
-        <div style="text-align:center;margin-top:8px"><span class="btn btn-outline" data-en="Get the Book →" data-es="Obtener el Libro →">Get the Book →</span></div>
-      </a>
     </div>
+
+    <!-- BOOK: Leading With Machines (matches rodrik.io presentation) -->
+    <div id="book" class="book-feature reveal">
+      <a class="book-cover" href="https://www.amazon.com/dp/B0GZJ9RD9B" target="_blank" rel="noopener" aria-label="Leading With Machines on Amazon">
+        <img src="https://rodrik.io/ebook_cover.jpg" alt="Leading With Machines book cover"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <span class="book-cover-fallback">
+          <span class="book-cover-title">LEADING WITH MACHINES</span>
+          <span class="book-cover-line"></span>
+          <span class="book-cover-author">Dr. Oscar A. Rodriguez</span>
+        </span>
+      </a>
+      <div class="book-info">
+        <div class="book-label" data-en="The Book" data-es="El Libro">The Book</div>
+        <h3 class="book-title">Leading With Machines</h3>
+        <p class="book-sub"><em>How to Stay Human When AI Makes the Decisions</em></p>
+        <p class="book-body"><span data-en="The definitive leadership guide for executives navigating an era where AI shapes institutional decisions. Built around the FLAME framework, this book equips leaders with the tools, language, and moral clarity to govern AI responsibly." data-es="La guía definitiva de liderazgo para ejecutivos que navegan una era donde la IA moldea decisiones institucionales. Basado en el marco FLAME, este libro equipa a los líderes con herramientas, lenguaje y claridad moral para gobernar la IA responsablemente.">The definitive leadership guide for executives navigating an era where AI shapes institutional decisions. Built around the FLAME framework, this book equips leaders with the tools, language, and moral clarity to govern AI responsibly.</span></p>
+        <ul class="book-points">
+          <li><span data-en="Understand the Responsibility Gap — and how to close it" data-es="Comprenda la Brecha de Responsabilidad — y cómo cerrarla">Understand the Responsibility Gap — and how to close it</span></li>
+          <li><span data-en="Apply the FLAME framework to real AI-driven decisions" data-es="Aplique el marco FLAME a decisiones reales impulsadas por IA">Apply the FLAME framework to real AI-driven decisions</span></li>
+          <li><span data-en="Lead with moral clarity in an age of machine intelligence" data-es="Lidere con claridad moral en la era de la inteligencia artificial">Lead with moral clarity in an age of machine intelligence</span></li>
+        </ul>
+        <div class="book-actions">
+          <a class="btn" href="https://www.amazon.com/dp/B0GZJ9RD9B" target="_blank" rel="noopener" data-en="Buy on Amazon" data-es="Comprar en Amazon">Buy on Amazon</a>
+          <a class="btn btn-outline" href="https://www.barnesandnoble.com/w/leading-with-machines-oscar-a-rodriguez/1149899232?ean=9798995696001" target="_blank" rel="noopener">Barnes &amp; Noble</a>
+          <a class="btn btn-outline" href="https://rodrik.io/book.html" target="_blank" rel="noopener" data-en="Learn More →" data-es="Saber Más →">Learn More →</a>
+        </div>
+      </div>
+    </div>
+    <style>
+      #book{display:grid;grid-template-columns:260px 1fr;gap:48px;align-items:center;margin-top:28px;
+        padding:32px;background:var(--panel);border:1px solid var(--stroke);border-radius:16px;box-shadow:var(--shadow);}
+      #book .book-cover{display:block;aspect-ratio:2/3;border-radius:8px;overflow:hidden;border:1px solid var(--stroke);
+        background:linear-gradient(145deg,#1a1f2e,#0d1018);
+        box-shadow:18px 18px 60px rgba(0,0,0,.6),-4px -4px 0 rgba(245,132,38,.18);transition:transform .25s ease;}
+      #book .book-cover:hover{transform:translateY(-4px) scale(1.02);text-decoration:none;}
+      #book .book-cover img{width:100%;height:100%;object-fit:contain;background:#0b0e13;}
+      #book .book-cover-fallback{display:none;height:100%;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;}
+      #book .book-cover-title{font-size:24px;font-weight:800;letter-spacing:.04em;line-height:1.1;color:var(--ink);}
+      #book .book-cover-line{width:36px;height:2px;background:var(--knicks-orange);margin:14px auto;}
+      #book .book-cover-author{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--knicks-orange);}
+      #book .book-label{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--knicks-orange);margin-bottom:6px;}
+      #book .book-title{font-size:34px;line-height:1.1;margin:0;color:var(--ink);}
+      #book .book-sub{color:var(--muted);margin:6px 0 16px;}
+      #book .book-body{color:var(--muted);line-height:1.8;margin:0 0 18px;}
+      #book .book-points{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:10px;}
+      #book .book-points li{position:relative;padding-left:20px;color:var(--ink);line-height:1.6;}
+      #book .book-points li::before{content:"";position:absolute;left:0;top:.6em;width:7px;height:7px;border-radius:50%;background:var(--knicks-orange);}
+      #book .book-actions{display:flex;flex-wrap:wrap;gap:12px;}
+      #book .book-actions .btn:hover{text-decoration:none;}
+      @media (max-width:840px){
+        #book{grid-template-columns:1fr;gap:28px;padding:24px;}
+        #book .book-cover{max-width:220px;width:100%;margin:0 auto;}
+        #book .book-title{font-size:28px;}
+        #book .book-actions{flex-direction:column;}
+        #book .book-actions .btn{text-align:center;}
+      }
+    </style>
   </section>
 
   <!-- SELECTED WORK -->
@@ -1172,7 +1220,7 @@ if (is_file(__DIR__ . '/msa2026/index.php')) require_once __DIR__ . '/msa2026/in
       <div class="foot-tagline" data-en="Leadership. Analytics. Ethics. Impact." data-es="Liderazgo. Analítica. Ética. Impacto.">Leadership. Analytics. Ethics. Impact.</div>
     </div>
     <nav class="foot-links" aria-label="Footer">
-      <a href="https://www.amazon.com/dp/B0F4W4V6QK" target="_blank" rel="noopener" data-en="Book" data-es="Libro">Book</a>
+      <a href="https://www.amazon.com/dp/B0GZJ9RD9B" target="_blank" rel="noopener" data-en="Book" data-es="Libro">Book</a>
       <a href="https://flame.droscarrodriguez.com" target="_blank" rel="noopener" data-en="FLAME Audit" data-es="Auditoría FLAME">FLAME Audit</a>
       <a href="https://apps.rodrikconsulting.com/" data-en="Apps" data-es="Apps">Apps</a>
       <a href="https://www.droscarrodriguez.com" target="_blank" rel="noopener" data-en="Dr. Rodriguez" data-es="Dr. Rodríguez">Dr. Rodriguez</a>
