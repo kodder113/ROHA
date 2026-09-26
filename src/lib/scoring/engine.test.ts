@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SCORING_CONFIG, parseScoringConfig } from "./config";
-import { bandFor, classifyRating, gapInfo, isValidResponse, normalize, round1, scoreAssessment } from "./engine";
+import { bandFor, checkResponseValidity, classifyRating, engineMajor, ENGINE_VERSION, gapInfo, isValidResponse, normalize, round1, scoreAssessment } from "./engine";
 import { fixtureDimensions, fixtureQuestions, responseFrom, uniformResponse } from "./fixtures";
 import type { ResponseRecord, ScoringConfig } from "./types";
 
@@ -231,5 +231,52 @@ describe("independent verification", () => {
   it("rounds for display only", () => {
     expect(round1(41.66666)).toBe(41.7);
     expect(round1(null)).toBeNull();
+  });
+});
+
+describe("per-dimension inclusion rule (scoring rules v2)", () => {
+  const v2Config = parseScoringConfig({ ...config, minValidCurrentRatings: 20, minValidCurrentPerDimension: 4, assessmentVersion: 2 });
+  // Five dimensions × five items, mirroring the Version 2 structure.
+  const dims5 = ["LE", "OC", "EE", "OE", "SI"].map((code, i) => ({ id: `d-${code}`, key: code.toLowerCase(), code, name: code, sortOrder: i + 1 }));
+  const qs25 = dims5.flatMap((d) => [1, 2, 3, 4, 5].map((n) => ({ id: `q-${d.code}${n}`, key: `${d.code}${n}`, dimensionId: d.id, focus: "", prompt: "", sortOrder: n, allowNa: true })));
+  const resp = (fn: (key: string) => ResponseRecord["items"][string]) => ({ items: Object.fromEntries(qs25.map((q) => [q.id, fn(q.key)])) });
+  const score25 = (responses: ResponseRecord[], cfg: ScoringConfig) => scoreAssessment({ dimensions: dims5, questions: qs25, responses, config: cfg });
+
+  it("includes a respondent with at least four valid current ratings in every dimension", () => {
+    const oneNaPerDimension = resp((k) => (k.endsWith("3") ? { current: "NA", desired: "NA" } : { current: 4, desired: 5 }));
+    expect(checkResponseValidity(oneNaPerDimension, qs25, v2Config).valid).toBe(true);
+  });
+
+  it("excludes a respondent with only three valid ratings in one dimension, even with 23 valid overall", () => {
+    const twoNaInSI = resp((k) => (k === "SI3" || k === "SI5" ? { current: "NA", desired: "NA" } : { current: 4, desired: 5 }));
+    const check = checkResponseValidity(twoNaInSI, qs25, v2Config);
+    expect(check.valid).toBe(false);
+    expect(check.belowOverall).toBe(false);
+    expect(check.shortDimensions).toEqual(["d-SI"]);
+    expect(check.shortfallInvolvesNA).toBe(true);
+  });
+
+  it("reports exclusions transparently by dimension and cause", () => {
+    const ok = resp(() => ({ current: 3, desired: 5 }));
+    const naSI = resp((k) => (k === "SI3" || k === "SI5" ? { current: "NA", desired: "NA" } : { current: 3, desired: 5 }));
+    const missingLE = resp((k) => (k.startsWith("LE") && k !== "LE1" ? { current: null, desired: null } : { current: 3, desired: 5 }));
+    const result = score25([ok, ok, naSI, missingLE], v2Config);
+    expect(result.validResponses).toBe(2);
+    expect(result.excludedResponses).toBe(2);
+    expect(result.exclusions?.belowDimensionThreshold).toEqual({ si: 1, le: 1 });
+    expect(result.exclusions?.withNotApplicable).toBe(1);
+    expect(result.exclusions?.rule).toMatch(/at least 4 in every dimension/);
+    // Excluded respondents do not affect any score.
+    expect(result.overall.currentIndex).toBe(50);
+  });
+
+  it("leaves rules without the per-dimension setting (v1) unchanged", () => {
+    const naSI = resp((k) => (k === "SI3" || k === "SI5" ? { current: "NA", desired: "NA" } : { current: 3, desired: 5 }));
+    expect(checkResponseValidity(naSI, qs25, config).valid).toBe(true);
+    expect(score25([naSI], config).exclusions?.belowDimensionThreshold).toEqual({});
+  });
+
+  it("keeps cached results valid within the same engine major version", () => {
+    expect(engineMajor("roha-scoring-engine/1.0.0")).toBe(engineMajor(ENGINE_VERSION));
   });
 });

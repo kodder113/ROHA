@@ -39,7 +39,7 @@ export default async function NewCampaignPage() {
             This assessment will use <strong>{ent.planName}</strong>
             {ent.maxResponsesPerCampaign ? <> and accept up to {ent.maxResponsesPerCampaign.toLocaleString()} responses</> : null}.{" "}
             <Link href="/framework" className="font-medium underline" target="_blank">
-              Review the 24 assessment statements
+              Review the assessment statements
             </Link>
             .
           </Alert>

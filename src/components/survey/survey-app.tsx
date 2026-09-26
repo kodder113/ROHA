@@ -17,6 +17,7 @@ import { RohaMark } from "@/components/brand/logo";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox, Input, Label, Select, Textarea } from "@/components/ui/form";
+import { numberWord } from "@/lib/text";
 import { BRAND } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import type { SurveyDefinition, SurveyQuestion } from "@/lib/survey/load";
@@ -487,6 +488,7 @@ function Welcome({
   onCode: (v: string) => void;
   preview: boolean;
 }) {
+  const statementCount = survey.sections.reduce((n, sec) => n + sec.questions.length, 0);
   const anonymous = survey.privacyMode === "anonymous";
   return (
     <div className="space-y-8">
@@ -509,9 +511,9 @@ function Welcome({
         <p className="text-sm text-muted">Conducted by {survey.organizationName}</p>
         {survey.description ? <p className="leading-relaxed text-navy-800">{survey.description}</p> : null}
         <p className="leading-relaxed text-navy-800">
-          This assessment asks for your perspective on how the organization operates across six areas: leadership, culture,
-          engagement, operations, innovation and strategy. For each of 24 statements you will give two ratings: how things
-          are <strong>today</strong>, and how you believe they <strong>should be</strong> in the future. There are no right or
+          This assessment asks for your perspective on how the organization operates across {numberWord(survey.sections.length)} areas:{" "}
+          {listNames(survey.sections.map((sec) => sec.name))}. For each of {statementCount} statements you will give two ratings: how
+          things are <strong>today</strong>, and how you believe they <strong>should be</strong> in the future. There are no right or
           wrong answers — your honest view is what matters.
         </p>
       </section>
@@ -889,4 +891,10 @@ function ReviewStep({
       </div>
     </div>
   );
+}
+
+/** "A, B and C" in lower case, for use inside a sentence. */
+function listNames(names: string[]): string {
+  const lower = names.map((n) => n.replace(/(^|\s)([A-Z])(?=[a-z])/g, (_m, sp: string, c: string) => sp + c.toLowerCase()));
+  return lower.length <= 1 ? (lower[0] ?? "") : `${lower.slice(0, -1).join(", ")} and ${lower[lower.length - 1]}`;
 }

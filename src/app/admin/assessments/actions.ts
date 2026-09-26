@@ -207,12 +207,20 @@ export async function updateQualitativeQuestions(_prev: ActionState, formData: F
 export async function publishAssessmentVersion(_prev: ActionState, formData: FormData): Promise<ActionState> {
   return runAdminAction(formData, z.object({ versionId: zId, retirePrevious: zCheckbox }), async ({ admin, input, audit }) => {
     const v = await requireDraft(admin, input.versionId);
-    const [{ data: dimensions }, { data: questions }, { data: qualitative }] = await Promise.all([
-      admin.from("dimensions").select("id, name, description").eq("version_id", v.id),
+    const [{ data: dimensions }, { data: questions }, { data: qualitative }, { data: publishedRules }] = await Promise.all([
+      admin.from("dimensions").select("id, name, description, code").eq("version_id", v.id),
       admin.from("questions").select("dimension_id, prompt, focus").eq("version_id", v.id),
       admin.from("qualitative_questions").select("prompt").eq("version_id", v.id),
+      admin.from("scoring_rule_versions").select("id, version_number, config").eq("status", "published"),
     ]);
-    const checks = checkReadiness({ title: v.title, dimensions: dimensions ?? [], questions: questions ?? [], qualitative: qualitative ?? [] });
+    const checks = checkReadiness({
+      title: v.title,
+      versionNumber: v.version_number,
+      publishedRules: publishedRules ?? [],
+      dimensions: dimensions ?? [],
+      questions: questions ?? [],
+      qualitative: qualitative ?? [],
+    });
     const failing = checks.filter((c) => !c.ok);
     if (failing.length) {
       throw new AdminActionError("This version is not ready to publish.", failing.map((c) => `${c.label}${c.detail ? ` — ${c.detail}` : ""}`));

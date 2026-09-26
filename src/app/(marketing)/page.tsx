@@ -19,6 +19,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { CtaBand } from "@/components/marketing/cta-band";
 import { IllustrativeDashboard } from "@/components/marketing/illustrative-dashboard";
 import { FALLBACK_DIMENSION_NAMES } from "@/components/marketing/nav";
+import { capitalize, numberWord } from "@/lib/text";
 import { PlanCard } from "@/components/marketing/plan-card";
 import { Container, Eyebrow, FeatureCard, HeroBackdrop, Section, SectionHeading } from "@/components/marketing/section";
 import { darkOutlineButton } from "@/components/marketing/buttons";
@@ -38,7 +39,8 @@ export default async function HomePage() {
   const dimensions =
     framework?.dimensions.map((d) => ({ key: d.key, code: d.code, name: d.name, description: d.description })) ??
     FALLBACK_DIMENSION_NAMES.map((name) => ({ key: name, code: null, name, description: null }));
-  const questionCount = framework?.dimensions.reduce((sum, d) => sum + d.questions.length, 0) ?? 24;
+  const questionCount = framework?.dimensions.reduce((sum, d) => sum + d.questions.length, 0) ?? FALLBACK_DIMENSION_NAMES.length * 4;
+  const perDimension = dimensions.length ? Math.round(questionCount / dimensions.length) : 0;
 
   return (
     <>
@@ -87,7 +89,7 @@ export default async function HomePage() {
             </dl>
           </div>
           <div className="animate-fade-in lg:pl-4">
-            <IllustrativeDashboard />
+            <IllustrativeDashboard codes={dimensions.map((d) => d.code).filter((c): c is string => !!c)} />
           </div>
         </Container>
       </section>
@@ -118,13 +120,13 @@ export default async function HomePage() {
         </div>
       </Section>
 
-      {/* Six dimensions */}
+      {/* Dimensions */}
       <Section tone="canvas" aria-labelledby="dimensions-heading">
         <SectionHeading
           id="dimensions-heading"
           eyebrow="The ROHA Framework"
-          title="Six dimensions of organizational health."
-          description="ROHA examines the organization as an integrated system. Each dimension is measured through four carefully worded statements, giving leaders a structured view of how employees experience leadership, culture, work and direction."
+          title={`${capitalize(numberWord(dimensions.length))} dimensions of organizational health.`}
+          description={`ROHA examines the organization as an integrated system. Each dimension is measured through ${numberWord(perDimension)} carefully worded statements, giving leaders a structured view of how employees experience leadership, culture, work and direction.`}
         />
         <ol className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {dimensions.map((d, i) => (
@@ -396,3 +398,4 @@ export default async function HomePage() {
     </>
   );
 }
+

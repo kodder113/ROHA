@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 };
 
 const is = [
-  "A structured way to gather employee perceptions across six dimensions of organizational health.",
+  "A structured way to gather employee perceptions across the core dimensions of organizational health.",
   "A confidential channel that helps leaders hear candid perspectives they may not otherwise receive.",
-  "A consistent, versioned measure that allows organizations to compare perceptions over time.",
+  "A consistent, versioned measure that allows organizations to compare perceptions over time within the same assessment version.",
   "A starting point for informed leadership conversations and deliberate action.",
 ];
 

@@ -18,6 +18,11 @@ function collectAllowed(snapshot: ReportInputSnapshot): Set<string> {
   add(snapshot.participation.validResponses);
   add(snapshot.participation.expected);
   add(snapshot.participation.ratePercent);
+  add(snapshot.participation.excludedResponses);
+  // Counts and thresholds quoted in the inclusion rule and exclusion reasons.
+  for (const text of [snapshot.participation.inclusionRule ?? "", ...(snapshot.participation.exclusionReasons ?? [])]) {
+    for (const m of text.matchAll(/\d+/g)) add(Number(m[0]));
+  }
   add(snapshot.overall.currentIndex);
   add(snapshot.overall.desiredIndex);
   add(snapshot.overall.gap);
@@ -28,7 +33,9 @@ function collectAllowed(snapshot: ReportInputSnapshot): Set<string> {
   for (const i of snapshot.items) [i.current, i.desired, i.gap, i.respondents, i.notApplicable, i.currentFavorablePercent].forEach(add);
   for (const c of snapshot.comments) add(c.count);
   // Structural numbers that are always legitimate.
-  for (const n of [0, 1, 2, 3, 4, 5, 6, 12, 24, 30, 48, 60, 90, 100]) allowed.add(String(n));
+  // Version 1: 6 dimensions × 4 items (24 items, 48 ratings); version 2: 5 × 5
+  // (25 items, 50 ratings, 20% dimension weight); 30/60/90-day plan phases.
+  for (const n of [0, 1, 2, 3, 4, 5, 6, 12, 20, 24, 25, 30, 48, 50, 60, 90, 100]) allowed.add(String(n));
   return allowed;
 }
 

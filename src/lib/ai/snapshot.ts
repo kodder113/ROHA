@@ -1,6 +1,7 @@
 import type { ReportInputSnapshot } from "./report-schema";
 import type { ParticipationSummary, ResultsPayload } from "@/lib/results/types";
 import { round1 } from "@/lib/scoring/engine";
+import { describeExclusions } from "@/lib/results/exclusions";
 
 /**
  * Builds the aggregate-only snapshot that is (a) sent to the AI provider and
@@ -17,6 +18,7 @@ export function buildReportSnapshot(args: {
   const { payload, participation } = args;
   const o = payload.overall;
   const dimName = new Map(o.dimensions.map((d) => [d.key, d.name]));
+  const exclusions = describeExclusions(o);
   return {
     organization: {
       name: args.organization.name,
@@ -31,7 +33,7 @@ export function buildReportSnapshot(args: {
     },
     methodology: {
       scale: "1 = Strongly disagree, 2 = Disagree, 3 = Neither agree nor disagree, 4 = Agree, 5 = Strongly agree; Not Applicable excluded from averages",
-      normalization: "Normalized score = ((rating − 1) / 4) × 100; question scores averaged with equal weights into dimensions, dimensions averaged with equal weights into the overall index",
+      normalization: "Normalized score = ((rating − 1) / 4) × 100; question scores averaged with equal weights into dimensions, dimensions averaged with equal weights into the overall index. Only responses meeting the inclusion rule (see participation) are scored",
       gapDefinition: "Gap = desired score − current score. Positive: employees prefer more of the characteristic. Negative: employees prefer less.",
       minGroupSize: payload.minGroupSize,
       engineVersion: payload.engineVersion,
@@ -43,6 +45,9 @@ export function buildReportSnapshot(args: {
       validResponses: o.validResponses,
       expected: participation.expected,
       ratePercent: participation.rate === null ? null : round1(participation.rate),
+      ...(exclusions
+        ? { excludedResponses: exclusions.excluded, inclusionRule: exclusions.rule, exclusionReasons: exclusions.reasons }
+        : {}),
     },
     overall: {
       currentIndex: round1(o.overall.currentIndex),

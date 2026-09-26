@@ -2,7 +2,7 @@
  * Vector charts for the ROHA Executive PDF, drawn with react-pdf Svg
  * primitives. Every value plotted comes from the deterministic snapshot.
  */
-import { Circle, G, Line, Polygon, Rect, Svg, Text } from "@react-pdf/renderer";
+import { Circle, G, Line, Path, Polygon, Rect, Svg, Text } from "@react-pdf/renderer";
 import type { ReportInputSnapshot } from "../../ai/report-schema";
 import { clamp100, fmtGap, fmtScore, isNum } from "./format";
 import { COLORS, FONTS } from "./styles";
@@ -37,21 +37,17 @@ function truncate(s: string, max: number): string {
 // Brand mark
 // ---------------------------------------------------------------------------
 
-function hexPoints(cx: number, cy: number, r: number): string {
-  return Array.from({ length: 6 }, (_, i) => {
-    const a = (Math.PI / 3) * i - Math.PI / 2;
-    return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
-  }).join(" ");
-}
-
-/** ROHA hexagon mark: a solid outer hexagon with an emerald inner facet. */
-export function HexMark({ size = 48, onDark = true }: { size?: number; onDark?: boolean }) {
-  const c = size / 2;
+/**
+ * ROHA brand mark for PDFs (same geometry as the web mark in
+ * src/components/brand/logo.tsx, drawn on a 40-unit grid and scaled).
+ */
+export function BrandMark({ size = 48, onDark = true }: { size?: number; onDark?: boolean }) {
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <Polygon points={hexPoints(c, c, c - 1)} fill="none" stroke={onDark ? COLORS.white : COLORS.navy} strokeWidth={1.6} />
-      <Polygon points={hexPoints(c, c, c * 0.62)} fill={COLORS.emerald} />
-      <Polygon points={hexPoints(c, c, c * 0.26)} fill={onDark ? COLORS.navy : COLORS.white} />
+    <Svg width={size} height={size} viewBox="0 0 40 40">
+      <Path d="M34.1 25.13 A15 15 0 1 1 31.49 10.36" fill="none" stroke={onDark ? COLORS.white : COLORS.navy} strokeWidth={3.2} strokeLinecap="round" />
+      <Circle cx={34.77} cy={17.4} r={2.2} fill={COLORS.emerald} />
+      <Circle cx={20} cy={20} r={6.5} fill={COLORS.emerald} />
+      <Circle cx={20} cy={20} r={2.4} fill={onDark ? COLORS.navy : COLORS.white} />
     </Svg>
   );
 }

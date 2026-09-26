@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, Lock, Trash2 } from "lucide-react";
 import { requirePlatformAdmin } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rulesAssessmentVersion } from "@/lib/scoring/pairing";
 import { scoringConfigSchema } from "@/lib/scoring/config";
 import { PageHeader } from "@/components/ui/misc";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -29,6 +30,7 @@ export default async function ScoringVersionPage({ params }: { params: Promise<{
 
   const isDraft = v.status === "draft";
   const validation = scoringConfigSchema.safeParse(v.config);
+  const forAssessment = validation.success ? rulesAssessmentVersion(validation.data) : null;
 
   return (
     <div className="max-w-5xl">
@@ -44,6 +46,7 @@ export default async function ScoringVersionPage({ params }: { params: Promise<{
             <span className="text-xs">
               Created {formatDateTime(v.created_at)}
               {v.published_at ? ` · Published ${formatDateTime(v.published_at)}` : ""} · Pinned by {count ?? 0} campaign(s)
+              {forAssessment ? ` · For assessment version ${forAssessment}` : ""}
             </span>
           </span>
         }
@@ -55,7 +58,8 @@ export default async function ScoringVersionPage({ params }: { params: Promise<{
           <span className="inline-flex items-start gap-1.5">
             <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
             Campaigns scored with this version must always reproduce the same results. Create a new draft to change the rules; new campaigns
-            will use the latest published version while existing campaigns keep their pinned version.
+            use the latest published rules designed for their assessment version (the <code>assessmentVersion</code> setting; absent means
+            version 1), while existing campaigns keep their pinned version.
           </span>
         </Alert>
       ) : null}
@@ -87,7 +91,7 @@ export default async function ScoringVersionPage({ params }: { params: Promise<{
                   label="Configuration (JSON)"
                   htmlFor="config"
                   required
-                  hint="Keys: scaleMin, scaleMax, normalization (linear_0_100), questionWeights, dimensionWeights, minValidCurrentRatings, minGroupSize (3–50), gapThresholds {notable, substantial}, bands [{min, label}]."
+                  hint="Keys: scaleMin, scaleMax, normalization (linear_0_100), questionWeights, dimensionWeights, minValidCurrentRatings, minValidCurrentPerDimension (optional), assessmentVersion (optional; absent = 1), minGroupSize (3–50), gapThresholds {notable, substantial}, bands [{min, label}]."
                 >
                   <Textarea id="config" name="config" rows={24} spellCheck={false} required defaultValue={prettyJson(v.config)} className="font-mono text-xs leading-relaxed" />
                 </Field>
@@ -96,7 +100,7 @@ export default async function ScoringVersionPage({ params }: { params: Promise<{
             </CardBody>
           </Card>
           <Card>
-            <CardHeader title="Publish" description="Publishing makes this version permanently read-only and the default for new campaigns." />
+            <CardHeader title="Publish" description={`Publishing makes this version permanently read-only and the default for new campaigns that use assessment version ${forAssessment ?? 1}.`} />
             <CardBody className="flex flex-wrap items-start justify-between gap-4">
               <ActionForm action={publishScoringDraft} confirm={`Publish scoring rules v${v.version_number}? This cannot be undone.`}>
                 <input type="hidden" name="id" value={v.id} />

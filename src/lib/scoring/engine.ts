@@ -30,7 +30,12 @@ import type {
   ScoringConfig,
 } from "./types";
 
-export const ENGINE_VERSION = "roha-scoring-engine/1.0.0";
+export const ENGINE_VERSION = "roha-scoring-engine/1.1.0";
+
+/** Major version of an engine version string; cached results are reused within a major version. */
+export function engineMajor(version: string): string {
+  return version.replace(/^.*\//, "").split(".")[0];
+}
 
 type Perspective = "current" | "desired";
 
@@ -90,13 +95,60 @@ function weightedMean(values: { value: number; weight: number }[]): number | nul
   return values.reduce((sum, v) => sum + v.value * v.weight, 0) / totalWeight;
 }
 
-/** Counts numeric current-state ratings to decide response validity. */
-export function isValidResponse(response: ResponseRecord, questions: QuestionDef[], config: ScoringConfig): boolean {
+export interface ValidityCheck {
+  valid: boolean;
+  belowOverall: boolean;
+  /** Dimension ids that fell short of the per-dimension threshold. */
+  shortDimensions: string[];
+  /** True when N/A answers contributed to a dimension shortfall. */
+  shortfallInvolvesNA: boolean;
+}
+
+/**
+ * Decides whether a response is included in scoring.
+ *  - rules v1: at least `minValidCurrentRatings` numeric current ratings overall;
+ *  - rules v2+: additionally at least `minValidCurrentPerDimension` numeric
+ *    current ratings in every dimension. N/A never counts as a valid rating.
+ */
+export function checkResponseValidity(response: ResponseRecord, questions: QuestionDef[], config: ScoringConfig): ValidityCheck {
   let numeric = 0;
+  const perDim = new Map<string, { numeric: number; na: number; items: number }>();
   for (const q of questions) {
-    if (classifyRating(response.items[q.id]?.current, config).kind === "value") numeric += 1;
+    const c = classifyRating(response.items[q.id]?.current, config);
+    const d = perDim.get(q.dimensionId) ?? { numeric: 0, na: 0, items: 0 };
+    d.items += 1;
+    if (c.kind === "value") {
+      numeric += 1;
+      d.numeric += 1;
+    } else if (c.kind === "na") {
+      d.na += 1;
+    }
+    perDim.set(q.dimensionId, d);
   }
-  return numeric >= Math.min(config.minValidCurrentRatings, questions.length);
+  const belowOverall = numeric < Math.min(config.minValidCurrentRatings, questions.length);
+  const shortDimensions: string[] = [];
+  let shortfallInvolvesNA = false;
+  if (config.minValidCurrentPerDimension !== undefined) {
+    for (const [dimId, d] of perDim) {
+      if (d.numeric < Math.min(config.minValidCurrentPerDimension, d.items)) {
+        shortDimensions.push(dimId);
+        if (d.na > 0) shortfallInvolvesNA = true;
+      }
+    }
+  }
+  return { valid: !belowOverall && shortDimensions.length === 0, belowOverall, shortDimensions, shortfallInvolvesNA };
+}
+
+/** Counts numeric current-state ratings (overall and, where configured, per dimension) to decide validity. */
+export function isValidResponse(response: ResponseRecord, questions: QuestionDef[], config: ScoringConfig): boolean {
+  return checkResponseValidity(response, questions, config).valid;
+}
+
+export function describeInclusionRule(config: ScoringConfig, questionCount: number): string {
+  const overall = `at least ${Math.min(config.minValidCurrentRatings, questionCount)} numeric current-state ratings`;
+  return config.minValidCurrentPerDimension !== undefined
+    ? `${overall}, including at least ${config.minValidCurrentPerDimension} in every dimension; Not Applicable does not count as a rating`
+    : `${overall}; Not Applicable does not count as a rating`;
 }
 
 function perspectiveStats(
@@ -187,8 +239,16 @@ export function scoreAssessment({ dimensions, questions, responses, config }: Sc
     return da - db || a.sortOrder - b.sortOrder;
   });
 
-  const valid = responses.filter((r) => isValidResponse(r, sortedQuestions, config));
+  const checks = responses.map((r) => checkResponseValidity(r, sortedQuestions, config));
+  const valid = responses.filter((_, i) => checks[i].valid);
   const invalidCounter = { count: 0 };
+  const belowDimensionThreshold: Record<string, number> = {};
+  for (const c of checks) {
+    for (const dimId of c.shortDimensions) {
+      const key = dimById.get(dimId)?.key ?? dimId;
+      belowDimensionThreshold[key] = (belowDimensionThreshold[key] ?? 0) + 1;
+    }
+  }
 
   const questionResults = new Map<string, QuestionResult>();
   for (const q of sortedQuestions) {
@@ -240,6 +300,12 @@ export function scoreAssessment({ dimensions, questions, responses, config }: Sc
     validResponses: valid.length,
     excludedResponses: responses.length - valid.length,
     invalidRatings: invalidCounter.count,
+    exclusions: {
+      rule: describeInclusionRule(config, sortedQuestions.length),
+      belowOverallThreshold: checks.filter((c) => c.belowOverall).length,
+      belowDimensionThreshold,
+      withNotApplicable: checks.filter((c) => !c.valid && c.shortfallInvolvesNA).length,
+    },
     overall: {
       currentIndex: overallCurrent,
       desiredIndex: overallDesired,

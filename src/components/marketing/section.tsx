@@ -108,19 +108,19 @@ export function PageHero({
   );
 }
 
-/** Subtle hexagonal line pattern and emerald glow for navy sections. */
+/** Subtle dot-grid pattern and emerald glow for navy sections. */
 export function HeroBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">
       <div className="absolute -right-32 -top-40 h-[28rem] w-[28rem] rounded-full bg-emerald-500/10 blur-3xl" />
       <div className="absolute -bottom-48 -left-24 h-[24rem] w-[24rem] rounded-full bg-navy-500/20 blur-3xl" />
-      <svg className="absolute inset-0 h-full w-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
+      <svg className="absolute inset-0 h-full w-full opacity-[0.12]" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <pattern id="roha-hex" width="56" height="48.5" patternUnits="userSpaceOnUse" patternTransform="scale(1.2)">
-            <path d="M14 0 L42 0 L56 24.25 L42 48.5 L14 48.5 L0 24.25 Z" fill="none" stroke="#ffffff" strokeWidth="0.8" />
+          <pattern id="roha-grid" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="14" cy="14" r="1.1" fill="#ffffff" />
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#roha-hex)" />
+        <rect width="100%" height="100%" fill="url(#roha-grid)" />
       </svg>
     </div>
   );

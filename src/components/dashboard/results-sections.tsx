@@ -10,6 +10,7 @@ import { StatTile } from "@/components/ui/misc";
 import { cn, formatDate, formatGap, formatPercent, formatScore } from "@/lib/utils";
 import { LIKERT, distributionShares } from "./chart-theme";
 import { GapBadge, HATCH_STYLE } from "./chart-primitives";
+import { describeExclusions } from "@/lib/results/exclusions";
 
 /* -------------------------------------------------------------------------- */
 /* (a) Overall organizational health                                          */
@@ -61,7 +62,7 @@ export function HealthOverview({ result, participation }: { result: AssessmentRe
           value={result.validResponses.toLocaleString("en-US")}
           hint={
             result.excludedResponses > 0
-              ? `${result.excludedResponses.toLocaleString("en-US")} excluded for answering too few items`
+              ? `${result.excludedResponses.toLocaleString("en-US")} excluded under the inclusion rule (see Methodology)`
               : "No responses excluded"
           }
         />
@@ -104,7 +105,7 @@ export function DimensionalAnalysis({ dimensions, scopeLabel }: { dimensions: Di
     <Card className="animate-fade-up">
       <CardHeader
         title="Dimensional analysis"
-        description={`Six dimensions of organizational health — ${scopeLabel}. The bar shows how current-state ratings are spread from strongly disagree to strongly agree.`}
+        description={`${dimensions.length} dimensions of organizational health — ${scopeLabel}. The bar shows how current-state ratings are spread from strongly disagree to strongly agree.`}
       />
       {/* Table (md and up) */}
       <div className="hidden overflow-x-auto md:block">
@@ -369,6 +370,8 @@ export function QualitativePanel({ qualitative }: { qualitative: QualitativeSumm
 /* -------------------------------------------------------------------------- */
 
 export function MethodologyNote({ payload }: { payload: ResultsPayload }) {
+  // Organization-wide figures only; segment results never show exclusion detail.
+  const exclusions = describeExclusions(payload.overall);
   return (
     <footer className="rounded-xl border border-line bg-canvas px-5 py-4 text-xs leading-relaxed text-muted">
       <p className="font-semibold text-navy-800">Methodology</p>
@@ -377,6 +380,23 @@ export function MethodologyNote({ payload }: { payload: ResultsPayload }) {
         excluded from scores. Groups and cells with fewer than {payload.minGroupSize} valid responses are hidden, and further groups
         may be hidden so that small groups cannot be calculated by subtraction.
       </p>
+      {exclusions ? (
+        <div className="mt-1">
+          <p>
+            Inclusion rule: a response is scored only with {exclusions.rule}.{" "}
+            {exclusions.excluded > 0
+              ? `${exclusions.excluded.toLocaleString("en-US")} submitted response${exclusions.excluded === 1 ? " was" : "s were"} excluded.`
+              : "No submitted responses were excluded."}
+          </p>
+          {exclusions.reasons.length ? (
+            <ul className="mt-1 list-disc pl-5">
+              {exclusions.reasons.map((reason) => (
+                <li key={reason}>{reason}.</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
       <p className="mt-1 font-medium text-navy-800">Scores describe employee perceptions and are not validated benchmarks.</p>
       <dl className="mt-2 flex flex-wrap gap-x-5 gap-y-1 tabular-nums">
         <div className="flex gap-1">

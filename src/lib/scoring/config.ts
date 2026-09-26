@@ -9,6 +9,8 @@ export const scoringConfigSchema = z
     questionWeights: z.record(z.string(), z.number().positive()).default({}),
     dimensionWeights: z.record(z.string(), z.number().positive()).default({}),
     minValidCurrentRatings: z.number().int().min(1),
+    minValidCurrentPerDimension: z.number().int().min(1).optional(),
+    assessmentVersion: z.number().int().min(1).optional(),
     minGroupSize: z.number().int().min(3).max(50),
     gapThresholds: z.object({ notable: z.number().positive(), substantial: z.number().positive() }),
     bands: z.array(z.object({ min: z.number().min(0).max(100), label: z.string().min(1) })).min(1),

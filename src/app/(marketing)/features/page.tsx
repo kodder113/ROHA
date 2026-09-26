@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 };
 
 const visualizations = [
-  { Icon: Radar, title: "Current vs. desired radar", body: "The organization's six-dimension profile, today and as employees believe it should be, in a single view." },
+  { Icon: Radar, title: "Current vs. desired radar", body: "The organization's profile across every dimension, today and as employees believe it should be, in a single view." },
   { Icon: BarChart3, title: "Organizational health bar chart", body: "Dimension indices side by side, with descriptive bands for quick orientation." },
   { Icon: BarChartHorizontal, title: "Dimension gap chart", body: "Where the distance between experience and aspiration is greatest—ranked for prioritization." },
   { Icon: Layers, title: "Response distribution", body: "How ratings are spread across the scale, so averages never hide polarized opinion." },

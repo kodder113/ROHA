@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import Anthropic from "@anthropic-ai/sdk";
 import { DEFAULT_SCORING_CONFIG } from "@/lib/scoring/config";
-import { fixtureDimensions, fixtureQuestions, responseFrom } from "@/lib/scoring/fixtures";
+import { fixtureDimensions, fixtureQuestions, fixtureV2Dimensions, fixtureV2Questions, responseFrom, responseFromV2 } from "@/lib/scoring/fixtures";
+import { parseScoringConfig } from "@/lib/scoring/config";
 import { scorePopulation } from "@/lib/results/segments";
 import { buildReportSnapshot } from "./snapshot";
 import { generateRulesReport } from "./rules-report";
 import { findUnsupportedNumbers } from "./validate";
-import { executiveReportSchema, type ExecutiveReport } from "./report-schema";
-import { generateAIReport, AIReportError } from "./anthropic-report";
+import { analysisSectionsFor, executiveReportSchema, type ExecutiveReport } from "./report-schema";
+import { generateAIReport, AIReportError, buildTask } from "./anthropic-report";
 import type { ResultsPayload } from "@/lib/results/types";
 
 function makeSnapshot() {
@@ -148,5 +149,94 @@ describe("Anthropic report generation (mocked API)", () => {
     await expect(generateAIReport(snap, "S", { client: truncated.client, model: "claude-opus-5" })).rejects.toThrow(/cut off/);
     const refused = fakeClient("", "refusal");
     await expect(generateAIReport(snap, "S", { client: refused.client, model: "claude-opus-5" })).rejects.toThrow(/declined/);
+  });
+});
+
+/* Assessment version 2 (5 × 5) ------------------------------------------------ */
+
+const V2_RULES = parseScoringConfig({ ...DEFAULT_SCORING_CONFIG, minValidCurrentRatings: 20, minValidCurrentPerDimension: 4, assessmentVersion: 2 });
+
+function makeV2Snapshot() {
+  let s = 11;
+  const rand = () => ((s = (s * 9301 + 49297) % 233280) / 233280);
+  const responses = Array.from({ length: 28 }, () =>
+    responseFromV2(() => ({ current: 1 + Math.floor(rand() * 5), desired: 3 + Math.floor(rand() * 3) })),
+  );
+  // Two respondents mark both SI3 and SI5 as N/A and are excluded by the per-dimension rule.
+  for (let i = 0; i < 2; i++) {
+    responses.push(responseFromV2((q) => (q.key === "SI3" || q.key === "SI5" ? { current: "NA", desired: "NA" } : { current: 4, desired: 5 })));
+  }
+  const overall = scorePopulation(responses, { dimensions: fixtureV2Dimensions, questions: fixtureV2Questions, config: V2_RULES });
+  const payload: ResultsPayload = {
+    engineVersion: overall.engineVersion,
+    scoringRuleVersion: 2,
+    assessmentVersion: 2,
+    minGroupSize: 5,
+    computedAt: "2026-09-01T00:00:00Z",
+    overall,
+    segments: {},
+    qualitative: [],
+    privacyMode: "confidential",
+  };
+  return buildReportSnapshot({
+    organization: { name: "Test Org", industry: null, employee_count_range: null },
+    campaign: { id: "c2", name: "Pilot", closed_at: "2026-09-01T00:00:00Z", closes_at: "2026-09-01T00:00:00Z", privacy_mode: "confidential" },
+    payload,
+    participation: { responses: 30, validResponses: 28, expected: 40, rate: 75, daily: [] },
+    comments: {},
+  });
+}
+
+describe("assessment version 2 reporting", () => {
+  it("reports exclusions transparently in the snapshot", () => {
+    const snap = makeV2Snapshot();
+    expect(snap.dimensions.map((d) => d.key)).toEqual(["leadership", "culture", "engagement", "operations", "strategy_innovation"]);
+    expect(snap.items).toHaveLength(25);
+    expect(snap.participation.validResponses).toBe(28);
+    expect(snap.participation.excludedResponses).toBe(2);
+    expect(snap.participation.inclusionRule).toMatch(/at least 4 in every dimension/);
+    expect(snap.participation.exclusionReasons?.join(" ")).toMatch(/2 responses had too few current-state ratings in Strategic Alignment & Innovation/);
+  });
+
+  it("maps sections H and I to Strategic Alignment & Innovation items without sub-scores", () => {
+    const snap = makeV2Snapshot();
+    const sections = analysisSectionsFor(snap.dimensions.map((d) => d.key));
+    expect(sections.map((s) => s.letter).join("")).toBe("DEFGHI");
+    expect(sections.find((s) => s.letter === "H")).toMatchObject({ dimension: "strategy_innovation", itemKeys: ["SI3", "SI4", "SI5"] });
+    expect(sections.find((s) => s.letter === "I")).toMatchObject({ dimension: "strategy_innovation", itemKeys: ["SI1", "SI2"], contextItemKeys: ["LE2", "LE5"] });
+
+    const report = generateRulesReport(snap);
+    expect(executiveReportSchema.safeParse(report).success).toBe(true);
+    expect(findUnsupportedNumbers(report, snap)).toEqual([]);
+    expect(report.innovation_readiness.summary).toMatch(/does not calculate a separate score/);
+    expect(report.innovation_readiness.findings.map((f) => f.evidence).join(" ")).toMatch(/SI3.*SI4.*SI5/);
+    expect(report.strategic_alignment.findings.map((f) => f.evidence).join(" ")).toMatch(/SI1.*SI2.*LE2.*LE5/);
+    expect(JSON.stringify(report)).not.toMatch(/six dimensions/);
+    expect(report.limitations.join(" ")).toMatch(/2 responses were excluded/);
+  });
+
+  it("limits the AI output schema to the version's dimensions and describes the section mapping", async () => {
+    const snap = makeV2Snapshot();
+    const task = buildTask(snap);
+    expect(task).toContain("5 dimensions and 25 items");
+    expect(task).toContain("SI3, SI4, SI5 aspect of Strategic Alignment & Innovation");
+    expect(task).toContain("do not calculate or state a separate score");
+    const { client, captured } = fakeClient(JSON.stringify(generateRulesReport(snap)));
+    await generateAIReport(snap, "S", { client, model: "claude-opus-5" });
+    const schemaText = JSON.stringify((captured.body!.output_config as { format: { schema: unknown } }).format.schema);
+    expect(schemaText).toContain("strategy_innovation");
+    expect(schemaText).not.toContain('"innovation"');
+
+    // A v1 dimension key is rejected for a v2 report.
+    const wrong = { ...generateRulesReport(snap), strengths: [{ dimension_key: "strategy", title: "x", explanation: "y" }] };
+    const bad = fakeClient(JSON.stringify(wrong));
+    await expect(generateAIReport(snap, "S", { client: bad.client, model: "claude-opus-5" })).rejects.toBeInstanceOf(AIReportError);
+  });
+
+  it("keeps version 1 section mapping and task wording", () => {
+    const snap = makeSnapshot();
+    expect(analysisSectionsFor(snap.dimensions.map((d) => d.key)).every((s) => !s.itemKeys)).toBe(true);
+    expect(buildTask(snap)).toContain("6 dimensions and 24 items");
+    expect(snap.participation.excludedResponses).toBe(0);
   });
 });

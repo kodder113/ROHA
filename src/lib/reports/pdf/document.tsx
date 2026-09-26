@@ -6,9 +6,10 @@
  */
 import type { ReactNode } from "react";
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import { ANALYSIS_SECTIONS, type AnalysisSection, type ActionItem, type ExecutiveReport, type ReportInputSnapshot } from "../../ai/report-schema";
+import { numberWord } from "../../text";
+import { analysisSectionsFor, type AnalysisSectionDef, type AnalysisSection, type ActionItem, type ExecutiveReport, type ReportInputSnapshot } from "../../ai/report-schema";
 import { BRAND } from "../../brand";
-import { GapChart, GroupedBarChart, HexMark, IndexGauge, RadarChart } from "./charts";
+import { GapChart, GroupedBarChart, BrandMark, IndexGauge, RadarChart } from "./charts";
 import {
   AccentCard,
   Bullets,
@@ -61,7 +62,7 @@ export const SECTIONS = [
   { id: "methodology", title: "Assessment Methodology" },
   { id: "participation", title: "Respondent Population and Participation" },
   { id: "index", title: "Organizational Health Index" },
-  { id: "profile", title: "Six-Dimensional Organizational Profile" },
+  { id: "profile", title: "Organizational Profile by Dimension" },
   { id: "comparison", title: "Current versus Desired Comparison" },
   { id: "strengths", title: "Organizational Strengths" },
   { id: "development", title: "Development Opportunities" },
@@ -98,7 +99,7 @@ function CoverPage({ snapshot, generatedAt }: { snapshot: ReportInputSnapshot; g
       <View style={{ backgroundColor: COLORS.navy, height: 520, paddingHorizontal: 60, paddingTop: 56 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <HexMark size={40} />
+            <BrandMark size={40} />
             <View style={{ marginLeft: 12 }}>
               <Text style={{ fontSize: 24, fontFamily: FONTS.sansBold, color: COLORS.white, letterSpacing: 5 }}>ROHA</Text>
               <Text style={{ fontSize: 7.5, color: "#b7c3d9", letterSpacing: 1.2, marginTop: 1 }}>{BRAND.productFull.toUpperCase()}</Text>
@@ -252,6 +253,9 @@ function Methodology({ snapshot, generator, model, registry }: SectionProps) {
         <LabelValue label="Weighting" value="Equal weights for items within a dimension and for dimensions within the overall index" />
         <LabelValue label="Gap" value={`${m.gapDefinition}  —  gap = desired – current`} />
         <LabelValue label="Not applicable" value="N/A and missing ratings are excluded from all averages" />
+        {snapshot.participation.inclusionRule ? (
+          <LabelValue label="Inclusion rule" value={`A response is scored only with ${snapshot.participation.inclusionRule}`} />
+        ) : null}
         <LabelValue label="Minimum group size" value={`${m.minGroupSize} valid respondents; smaller groups are suppressed (—)`} />
         <LabelValue label="Scoring engine" value={`Engine ${m.engineVersion} · Scoring rules v${m.scoringRuleVersion} · Assessment v${m.assessmentVersion}`} />
       </View>
@@ -317,10 +321,11 @@ function Participation({ snapshot, registry }: SectionProps) {
           <MinorHeading>{`Privacy mode: ${privacyModeLabel(mode)}`}</MinorHeading>
           <Text style={styles.paragraph}>{privacyText}</Text>
           <Text style={styles.paragraph}>
-            {`A response is counted as valid when it contains enough current-state ratings to be scored reliably. ${
-              p.validResponses < p.responses ? `${fmtInt(p.responses - p.validResponses)} submitted response(s) did not meet this threshold and were excluded.` : "All submitted responses met this threshold."
+            {`A response is counted as valid when it meets the inclusion rule${p.inclusionRule ? `: ${p.inclusionRule}` : " (a minimum number of current-state ratings)"}. ${
+              p.validResponses < p.responses ? `${fmtInt(p.responses - p.validResponses)} submitted response(s) did not meet this rule and were excluded.` : "All submitted responses met this rule."
             }`}
           </Text>
+          {p.exclusionReasons?.length ? <Bullets items={p.exclusionReasons.map((r) => `${r}.`)} /> : null}
         </View>
       </View>
     </View>
@@ -335,7 +340,7 @@ function HealthIndex({ snapshot, registry }: SectionProps) {
         id="index"
         number={sectionNumber("index")}
         title="Organizational Health Index"
-        intro="A single, equally weighted summary of all six dimensions."
+        intro={`A single, equally weighted summary of all ${numberWord(snapshot.dimensions.length)} dimensions.`}
         registry={registry}
       />
       <View style={{ flexDirection: "row", alignItems: "flex-end", marginBottom: 6 }} wrap={false}>
@@ -370,7 +375,7 @@ function Profile({ snapshot, registry }: SectionProps) {
       <SectionHeading
         id="profile"
         number={sectionNumber("profile")}
-        title="Six-Dimensional Organizational Profile"
+        title="Organizational Profile by Dimension"
         intro="Current and desired indices for each dimension of organizational health."
         registry={registry}
       />
@@ -549,12 +554,19 @@ function Strengths({ report, snapshot, registry }: SectionProps) {
   );
 }
 
-function AnalysisBlock({ title, section, dimensionName, dim }: {
-  title: string;
+function AnalysisBlock({ def, section, dimensionName, dim, items }: {
+  def: AnalysisSectionDef;
   section: AnalysisSection | undefined;
   dimensionName: string;
   dim: ReportInputSnapshot["dimensions"][number] | undefined;
+  items: ReportInputSnapshot["items"];
 }) {
+  const title = def.title;
+  const itemLine = [...(def.itemKeys ?? []), ...(def.contextItemKeys ?? [])]
+    .map((k) => items.find((i) => i.key === k))
+    .filter((i): i is ReportInputSnapshot["items"][number] => !!i)
+    .map((i) => `${i.key} ${fmtScore(i.current)} (gap ${fmtGap(i.gap)})`)
+    .join(" · ");
   return (
     <View style={{ marginTop: 16 }}>
       <View wrap={false} style={{ flexDirection: "row", alignItems: "flex-end", borderBottomWidth: 0.6, borderBottomColor: COLORS.rule, paddingBottom: 4, marginBottom: 6 }}>
@@ -563,6 +575,12 @@ function AnalysisBlock({ title, section, dimensionName, dim }: {
           {dim ? `${dimensionName} · Current ${fmtScore(dim.current)} · Desired ${fmtScore(dim.desired)} · Gap ${fmtGap(dim.gap)}` : dimensionName}
         </Text>
       </View>
+      {def.scope ? (
+        <Text style={{ fontSize: 8, color: COLORS.muted, marginBottom: 6, lineHeight: 1.35 }}>
+          {def.scope}
+          {itemLine ? `  Item current scores: ${itemLine}.` : ""}
+        </Text>
+      ) : null}
       {!section ? (
         <Empty />
       ) : (
@@ -646,13 +664,14 @@ function Development({ report, snapshot, registry }: SectionProps) {
           </Text>
         </View>
       </View>
-      {ANALYSIS_SECTIONS.map((s) => (
+      {analysisSectionsFor(snapshot.dimensions.map((d) => d.key)).map((s) => (
         <AnalysisBlock
           key={s.key}
-          title={s.title}
+          def={s}
           section={report[s.key] as AnalysisSection | undefined}
           dimensionName={nameOf(s.dimension)}
           dim={snapshot.dimensions.find((d) => d.key === s.dimension)}
+          items={snapshot.items}
         />
       ))}
     </View>
@@ -810,6 +829,11 @@ function standardLimitations(snapshot: ReportInputSnapshot): string[] {
       isNum(p.ratePercent) ? ` (a ${fmtPercent(p.ratePercent)} participation rate)` : ""
     }. Employees who chose not to participate may hold different views, so results may not represent the entire workforce.`,
     `Small-group suppression. To protect confidentiality, any result based on fewer than ${snapshot.methodology.minGroupSize} valid respondents is suppressed and shown as —. Suppression can limit the granularity of the analysis.`,
+    ...(snapshot.methodology.assessmentVersion >= 2
+      ? [
+          `Assessment version. These results use assessment version ${snapshot.methodology.assessmentVersion}, whose dimensions, items and inclusion rule differ from version 1. Overall and dimension scores should not be compared directly with results from a different assessment version.`,
+        ]
+      : []),
     "Cross-sectional design. This assessment is a single snapshot. It cannot establish causes or trends; repeating the assessment after interventions is needed to measure change.",
     "Narrative interpretation. Findings and hypotheses are interpretations of aggregate data. Hypotheses in particular are not conclusions and should be validated through follow-up inquiry before significant decisions are made.",
   ];
@@ -854,7 +878,7 @@ function About({ reportId, generator, model, generatedAt, snapshot, registry }: 
     <View break>
       <SectionHeading id="about" number={sectionNumber("about")} title="About Rodrik Consulting" registry={registry} />
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 14 }}>
-        <HexMark size={34} onDark={false} />
+        <BrandMark size={34} onDark={false} />
         <View style={{ marginLeft: 10 }}>
           <Text style={{ fontSize: 13, fontFamily: FONTS.sansBold, color: COLORS.navy }}>{BRAND.company}</Text>
           <Text style={{ fontSize: 8.5, color: COLORS.muted }}>{BRAND.tagline}</Text>

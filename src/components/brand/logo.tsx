@@ -2,22 +2,18 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * ROHA mark: six segments arranged as a hexagon (the six dimensions),
- * with an emerald core representing organizational health.
+ * ROHA mark: an open ring (the organization as a whole, assessed continuously)
+ * around an emerald core (organizational health), with an emerald point in the
+ * opening. Deliberately abstract: it does not depict a number of dimensions, so
+ * it stays valid across assessment versions.
  */
 export function RohaMark({ className, inverted = false }: { className?: string; inverted?: boolean }) {
-  const seg = inverted ? "#ffffff" : "#0a1a36";
+  const ring = inverted ? "#ffffff" : "#0a1a36";
   return (
     <svg viewBox="0 0 40 40" className={cn("h-8 w-8", className)} aria-hidden>
-      <g fill="none" strokeWidth="3.2" strokeLinecap="round">
-        <path d="M20 3.5 L34.3 11.75" stroke={seg} />
-        <path d="M34.3 14.5 L34.3 25.5" stroke={seg} opacity="0.85" />
-        <path d="M34.3 28.25 L20 36.5" stroke={seg} opacity="0.7" />
-        <path d="M20 36.5 L5.7 28.25" stroke="#10b981" />
-        <path d="M5.7 25.5 L5.7 14.5" stroke={seg} opacity="0.85" />
-        <path d="M5.7 11.75 L20 3.5" stroke={seg} opacity="0.7" />
-      </g>
-      <circle cx="20" cy="20" r="6" fill="#10b981" />
+      <path d="M34.1 25.13 A15 15 0 1 1 31.49 10.36" fill="none" stroke={ring} strokeWidth="3.2" strokeLinecap="round" />
+      <circle cx="34.77" cy="17.4" r="2.2" fill="#10b981" />
+      <circle cx="20" cy="20" r="6.5" fill="#10b981" />
       <circle cx="20" cy="20" r="2.4" fill={inverted ? "#0a1a36" : "#ffffff"} />
     </svg>
   );

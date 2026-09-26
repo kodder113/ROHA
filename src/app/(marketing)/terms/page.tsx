@@ -33,7 +33,7 @@ const sections: LegalSection[] = [
     title: "The Service",
     body: (
       <p>
-        ROHA enables organizations to gather confidential employee perceptions across six dimensions of organizational health, calculate
+        ROHA enables organizations to gather confidential employee perceptions across the dimensions of organizational health defined in the current ROHA framework, calculate
         descriptive scores, and review aggregated results through dashboards, AI-assisted reports and exportable documents. Features and
         limits depend on the plan selected. We may modify, improve or discontinue features from time to time, and will provide reasonable
         notice of changes that materially reduce the functionality of a paid plan during its term.

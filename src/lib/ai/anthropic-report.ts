@@ -2,7 +2,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { serverEnv } from "@/lib/env";
-import { executiveReportSchema, type ExecutiveReport, type ReportInputSnapshot } from "./report-schema";
+import { analysisSectionsFor, buildExecutiveReportSchema, executiveReportSchema, type ExecutiveReport, type ReportInputSnapshot } from "./report-schema";
 
 export class AIReportError extends Error {
   constructor(message: string, public readonly retryable: boolean) {
@@ -22,20 +22,36 @@ function supportsDefaultFallbacks(model: string): boolean {
   return /^claude-(opus-5|fable-5)/.test(model);
 }
 
-const TASK = `Write the ROHA Executive Organizational Intelligence Report for the organization described in the JSON below.
+/** Task instructions for the assessment version in the snapshot. */
+export function buildTask(snapshot: ReportInputSnapshot): string {
+  const sections = analysisSectionsFor(snapshot.dimensions.map((d) => d.key));
+  const di = sections
+    .map((sec) => {
+      const dimName = snapshot.dimensions.find((d) => d.key === sec.dimension)?.name ?? sec.dimension;
+      if (!sec.itemKeys) return `${sec.letter}. ${sec.key} — ${dimName}.`;
+      const context = sec.contextItemKeys?.length ? `, using ${sec.contextItemKeys.join(" and ")} as leadership context` : "";
+      return `${sec.letter}. ${sec.key} — the ${sec.itemKeys.join(", ")} aspect of ${dimName}${context}. Cite item-level figures from the input; do not calculate or state a separate score for this aspect.`;
+    })
+    .join("\n");
+  const excluded = snapshot.participation.excludedResponses
+    ? " Mention in limitations how many responses were excluded by the inclusion rule and why, using only the counts provided."
+    : "";
+  return `Write the ROHA Executive Organizational Intelligence Report for the organization described in the JSON below. This assessment version has ${snapshot.dimensions.length} dimensions and ${snapshot.items.length} items; refer only to the dimensions and items in the input.
 
 Sections to produce:
 A. executive_summary — 2–4 short paragraphs summarizing the measured current state, the desired state, the largest gaps, participation and key caveats.
 B. strengths — dimensions with relatively favorable current scores (usually 2–3).
 C. development_opportunities — dimensions where current and desired scores differ most (usually 2–4).
-D–I. leadership_analysis, cultural_analysis, employee_engagement, operational_effectiveness, innovation_readiness, strategic_alignment — for each: a summary, findings supported by the data (with evidence citing dimension or item keys and figures from the input), and hypotheses that would require further investigation (with how to investigate).
+D–I. For each section below: a summary, findings supported by the data (with evidence citing dimension or item keys and figures from the input), and hypotheses that would require further investigation (with how to investigate).
+${di}
 J. qualitative_themes — recurring topics in the employee comments (paraphrased, no quotes, no identifying details). If there are no comments, return an empty list.
 K. organizational_priorities — practical issues leadership could investigate, each marked as based on a finding or a hypothesis.
 L. action_plan — a 30/60/90-day roadmap of 6–9 actions, each with dimension, rationale, owner role, timeframe and a success metric.
-Also include limitations — specific methodological limitations for this data set (sample size, participation, self-report, no benchmarks, suppression, cross-sectional design).
+Also include limitations — specific methodological limitations for this data set (sample size, participation, self-report, no benchmarks, suppression, cross-sectional design).${excluded}
 
 Assessment data (aggregates only; figures are official and already rounded):
 `;
+}
 
 export async function generateAIReport(
   snapshot: ReportInputSnapshot,
@@ -50,7 +66,10 @@ export async function generateAIReport(
   const useFallbacks = supportsDefaultFallbacks(model);
   // Pass only the JSON schema (no auto-parse) so stop reasons can be inspected
   // before the output is validated.
-  const { schema } = betaZodOutputFormat(executiveReportSchema);
+  const dimensionKeys = snapshot.dimensions.map((d) => d.key);
+  if (dimensionKeys.length === 0) throw new AIReportError("The report snapshot has no dimensions.", false);
+  const versionSchema = buildExecutiveReportSchema(dimensionKeys as [string, ...string[]]);
+  const { schema } = betaZodOutputFormat(versionSchema);
   try {
     const stream = client.beta.messages.stream({
       model,
@@ -59,7 +78,7 @@ export async function generateAIReport(
       output_config: { effort: "high", format: { type: "json_schema", schema } },
       ...(useFallbacks ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
       system: systemPrompt,
-      messages: [{ role: "user", content: TASK + JSON.stringify(snapshot, null, 2) }],
+      messages: [{ role: "user", content: buildTask(snapshot) + JSON.stringify(snapshot, null, 2) }],
     });
     const message = await stream.finalMessage();
 
@@ -76,8 +95,8 @@ export async function generateAIReport(
     } catch {
       throw new AIReportError("The AI response was not valid JSON.", true);
     }
-    const validated = executiveReportSchema.safeParse(parsed);
-    if (!validated.success) {
+    const validated = versionSchema.safeParse(parsed).success ? executiveReportSchema.safeParse(parsed) : null;
+    if (!validated?.success) {
       throw new AIReportError("The AI response did not match the required report structure.", true);
     }
     return {

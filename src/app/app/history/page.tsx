@@ -25,12 +25,20 @@ export default async function HistoryPage() {
       />
       <TrendChart trend={trend} enabled={ent.features.historical_comparisons} dimensions={dimensions} />
       <Card className="overflow-hidden">
-        <CardHeader title="Completed assessments" description="Each assessment keeps the question set and scoring rules it was launched with." />
+        <CardHeader
+          title="Completed assessments"
+          description={
+            new Set(trend.map((t) => t.assessmentVersion)).size > 1
+              ? "Each assessment keeps the question set and scoring rules it was launched with. Assessments that used different assessment versions measure different dimensions and items, so their scores are not directly comparable."
+              : "Each assessment keeps the question set and scoring rules it was launched with."
+          }
+        />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
+          <table className="w-full min-w-[620px] text-sm">
             <thead className="bg-canvas text-left text-xs uppercase tracking-wide text-muted">
               <tr>
                 <th className="px-5 py-3 font-medium">Assessment</th>
+                <th className="px-5 py-3 font-medium">Version</th>
                 <th className="px-5 py-3 font-medium">Closed</th>
                 <th className="px-5 py-3 text-right font-medium">Valid responses</th>
                 <th className="px-5 py-3 text-right font-medium">Current</th>
@@ -41,7 +49,7 @@ export default async function HistoryPage() {
             <tbody className="divide-y divide-line">
               {trend.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-muted">
+                  <td colSpan={7} className="px-5 py-8 text-center text-muted">
                     No completed assessments with released results yet.
                   </td>
                 </tr>
@@ -53,6 +61,7 @@ export default async function HistoryPage() {
                         {t.name}
                       </Link>
                     </td>
+                    <td className="px-5 py-3 text-muted">v{t.assessmentVersion}</td>
                     <td className="px-5 py-3 text-muted">{formatDate(t.closedAt)}</td>
                     <td className="px-5 py-3 text-right tabular-nums">{t.validResponses}</td>
                     <td className="px-5 py-3 text-right tabular-nums">{formatScore(t.currentIndex)}</td>

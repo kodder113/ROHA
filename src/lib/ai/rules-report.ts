@@ -3,8 +3,9 @@
  * executive summary") and as a transparent fallback when the AI provider is not
  * configured. Every statement is derived mechanically from the snapshot.
  */
-import type { ExecutiveReport, ReportInputSnapshot } from "./report-schema";
-import { ANALYSIS_SECTIONS, DIMENSION_KEYS } from "./report-schema";
+import type { AnalysisSectionDef, ExecutiveReport, ReportInputSnapshot } from "./report-schema";
+import { analysisSectionsFor, DIMENSION_KEYS } from "./report-schema";
+import { numberWord } from "@/lib/text";
 
 type DimKey = (typeof DIMENSION_KEYS)[number];
 
@@ -40,11 +41,12 @@ export function generateRulesReport(s: ReportInputSnapshot): ExecutiveReport {
 
   const itemsFor = (dimName: string) => s.items.filter((i) => i.dimension === dimName && i.current !== null);
 
-  const sectionFor = (key: DimKey) => {
-    const d = s.dimensions.find((x) => x.key === key);
+  const sectionFor = (sec: AnalysisSectionDef) => {
+    const d = s.dimensions.find((x) => x.key === sec.dimension);
     if (!d || d.current === null) {
       return { summary: "Data for this dimension is insufficient to report while protecting confidentiality.", findings: [], hypotheses: [] };
     }
+    if (sec.itemKeys) return aspectSection(sec, d);
     const items = itemsFor(d.name).sort((a, b) => (a.current ?? 0) - (b.current ?? 0));
     const lowest = items[0];
     const highest = items[items.length - 1];
@@ -73,17 +75,44 @@ export function generateRulesReport(s: ReportInputSnapshot): ExecutiveReport {
     };
   };
 
-  const sections = Object.fromEntries(ANALYSIS_SECTIONS.map((sec) => [sec.key, sectionFor(sec.dimension)])) as unknown as Pick<
+  /** A section covering some items of a dimension: item-level figures only, never a sub-score. */
+  const aspectSection = (sec: AnalysisSectionDef, d: ReportInputSnapshot["dimensions"][number]) => {
+    const pick = (keys: string[] | undefined) =>
+      (keys ?? []).map((k) => s.items.find((i) => i.key === k)).filter((i): i is ReportInputSnapshot["items"][number] => !!i && i.current !== null);
+    const items = pick(sec.itemKeys);
+    const context = pick(sec.contextItemKeys);
+    const findings = items.map((i) => ({
+      statement: `"${i.focus}" (${i.key}) has a current score of ${f(i.current)} and a desired score of ${f(i.desired)} (gap ${signed(i.gap)}).`,
+      evidence: `Item ${i.key}: ${i.respondents} respondents provided numeric current-state ratings.`,
+    }));
+    for (const i of context) {
+      findings.push({
+        statement: `For context, the related leadership item "${i.focus}" (${i.key}) has a current score of ${f(i.current)} (gap ${signed(i.gap)}).`,
+        evidence: `Item ${i.key}.`,
+      });
+    }
+    return {
+      summary: `This section reports item-level results for part of ${d.name} (overall dimension score ${f(d.current)}, gap ${signed(d.gap)}). ROHA does not calculate a separate score for this aspect.`,
+      findings,
+      hypotheses: [],
+    };
+  };
+
+  const sections = Object.fromEntries(
+    analysisSectionsFor(s.dimensions.map((d) => d.key)).map((sec) => [sec.key, sectionFor(sec)]),
+  ) as unknown as Pick<
     ExecutiveReport,
     "leadership_analysis" | "cultural_analysis" | "employee_engagement" | "operational_effectiveness" | "innovation_readiness" | "strategic_alignment"
   >;
+  const dimensionCount = s.dimensions.length;
+  const countWord = numberWord(dimensionCount);
 
   return {
     executive_summary: summary,
     strengths: strongest.map((d) => ({
       dimension_key: d.key as DimKey,
       title: d.name,
-      explanation: `Current score ${f(d.current)} (${d.band ?? "unbanded"}), among the highest of the six dimensions.`,
+      explanation: `Current score ${f(d.current)} (${d.band ?? "unbanded"}), among the highest of the ${countWord} dimensions.`,
     })),
     development_opportunities: largestGaps.map((d) => ({
       dimension_key: d.key as DimKey,
@@ -119,6 +148,13 @@ export function generateRulesReport(s: ReportInputSnapshot): ExecutiveReport {
     ]),
     limitations: [
       "This is a rules-based summary; it does not interpret qualitative comments or provide contextual analysis.",
+      ...(s.participation.excludedResponses
+        ? [
+            `${s.participation.excludedResponses} response${s.participation.excludedResponses === 1 ? " was" : "s were"} excluded because ${
+              s.participation.excludedResponses === 1 ? "it" : "they"
+            } did not meet the inclusion rule (${s.participation.inclusionRule ?? "minimum number of current-state ratings"}).`,
+          ]
+        : []),
       ...(negativeGaps.length ? [`Negative gaps in ${negativeGaps.map((d) => d.name).join(", ")} indicate a preference for less of the measured characteristic and are not necessarily problems.`] : []),
       ...(smallSample ? ["The number of valid responses is small; individual perceptions may strongly influence the results."] : []),
     ],

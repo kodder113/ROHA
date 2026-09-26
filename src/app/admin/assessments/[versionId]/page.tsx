@@ -33,19 +33,28 @@ export default async function AssessmentVersionPage({ params }: { params: Promis
   const { data: version } = await admin.from("assessment_versions").select("*").eq("id", versionId).maybeSingle();
   if (!version) notFound();
 
-  const [{ data: dimensions }, { data: questions }, { data: qualitative }, { count: campaignCount }, { data: published }] = await Promise.all([
+  const [{ data: dimensions }, { data: questions }, { data: qualitative }, { count: campaignCount }, { data: published }, { data: publishedRules }] = await Promise.all([
     admin.from("dimensions").select("*").eq("version_id", version.id).order("sort_order"),
     admin.from("questions").select("*").eq("version_id", version.id).order("sort_order"),
     admin.from("qualitative_questions").select("*").eq("version_id", version.id).order("sort_order"),
     admin.from("campaigns").select("id", { count: "exact", head: true }).eq("assessment_version_id", version.id),
     admin.from("assessment_versions").select("version_number").eq("template_id", version.template_id).eq("status", "published").order("version_number"),
+    admin.from("scoring_rule_versions").select("id, version_number, config").eq("status", "published"),
   ]);
 
   const isDraft = version.status === "draft";
   const dims = dimensions ?? [];
   const qs = questions ?? [];
   const qual = qualitative ?? [];
-  const checks = checkReadiness({ title: version.title, dimensions: dims, questions: qs, qualitative: qual });
+  const checks = checkReadiness({
+    title: version.title,
+    versionNumber: version.version_number,
+    publishedRules: publishedRules ?? [],
+    dimensions: dims,
+    questions: qs,
+    qualitative: qual,
+  });
+  const perDimensionTarget = dims.length ? qs.filter((q) => q.dimension_id === dims[0].id).length : 0;
   const ready = checks.every((c) => c.ok);
   const byDim = (dimId: string) => qs.filter((q) => q.dimension_id === dimId);
 
@@ -168,7 +177,7 @@ export default async function AssessmentVersionPage({ params }: { params: Promis
       <div className="space-y-5">
         {dims.map((d) =>
           isDraft ? (
-            <DimensionEditor key={d.id} versionId={version.id} dimension={d} questions={byDim(d.id)} />
+            <DimensionEditor key={d.id} versionId={version.id} dimension={d} questions={byDim(d.id)} target={perDimensionTarget} />
           ) : (
             <DimensionReadOnly key={d.id} dimension={d} questions={byDim(d.id)} />
           ),
@@ -204,7 +213,18 @@ export default async function AssessmentVersionPage({ params }: { params: Promis
   );
 }
 
-function DimensionEditor({ versionId, dimension, questions }: { versionId: string; dimension: Tables<"dimensions">; questions: Tables<"questions">[] }) {
+function DimensionEditor({
+  versionId,
+  dimension,
+  questions,
+  target,
+}: {
+  versionId: string;
+  dimension: Tables<"dimensions">;
+  questions: Tables<"questions">[];
+  target: number;
+}) {
+  const balanced = questions.length === target && questions.length >= 4 && questions.length <= 6;
   return (
     <Card>
       <CardHeader
@@ -214,7 +234,7 @@ function DimensionEditor({ versionId, dimension, questions }: { versionId: strin
             <Badge tone="outline" className="font-mono">
               {dimension.code} · {dimension.key}
             </Badge>
-            <Badge tone={questions.length === 4 ? "emerald" : "red"}>{questions.length} questions</Badge>
+            <Badge tone={balanced ? "emerald" : "red"}>{questions.length} questions</Badge>
           </span>
         }
       />

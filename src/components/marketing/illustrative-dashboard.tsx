@@ -5,25 +5,30 @@ import { Sparkles } from "lucide-react";
  * represent any real organization's results; no values are displayed.
  */
 
-const AXES = ["LE", "OC", "EE", "OE", "IA", "SA"] as const;
+const DEFAULT_CODES = ["LE", "OC", "EE", "OE", "IA", "SA"];
 // Relative radii (0–1) chosen only to produce a readable shape.
-const CURRENT = [0.62, 0.7, 0.55, 0.48, 0.58, 0.66];
-const DESIRED = [0.86, 0.84, 0.82, 0.8, 0.88, 0.85];
+const CURRENT_POOL = [0.62, 0.7, 0.55, 0.48, 0.58, 0.66, 0.6, 0.52];
+const DESIRED_POOL = [0.86, 0.84, 0.82, 0.8, 0.88, 0.85, 0.83, 0.87];
 
 const CX = 120;
 const CY = 120;
 const R = 92;
 
-function point(i: number, r: number) {
-  const angle = (Math.PI / 3) * i - Math.PI / 2;
+function point(i: number, n: number, r: number) {
+  const angle = ((2 * Math.PI) / n) * i - Math.PI / 2;
   return [CX + Math.cos(angle) * R * r, CY + Math.sin(angle) * R * r] as const;
 }
 
 function polygon(values: number[]) {
-  return values.map((v, i) => point(i, v).map((n) => n.toFixed(1)).join(",")).join(" ");
+  return values.map((v, i) => point(i, values.length, v).map((n) => n.toFixed(1)).join(",")).join(" ");
 }
 
-export function IllustrativeDashboard() {
+/** `codes` are the dimension codes of the published framework; the shape adapts to their number. */
+export function IllustrativeDashboard({ codes = DEFAULT_CODES }: { codes?: string[] }) {
+  const AXES = codes.length >= 3 ? codes : DEFAULT_CODES;
+  const n = AXES.length;
+  const CURRENT = AXES.map((_, i) => CURRENT_POOL[i % CURRENT_POOL.length]);
+  const DESIRED = AXES.map((_, i) => DESIRED_POOL[i % DESIRED_POOL.length]);
   const rings = [0.25, 0.5, 0.75, 1];
   return (
     <figure className="relative" aria-labelledby="illustrative-caption">
@@ -44,24 +49,24 @@ export function IllustrativeDashboard() {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Current vs. desired</p>
             <p className="mt-1 font-serif text-lg font-semibold text-navy-900">Organizational health profile</p>
-            <svg viewBox="0 0 240 240" className="mx-auto mt-3 w-full max-w-[260px]" role="img" aria-label="Illustrative six-dimension radar chart with no real data">
+            <svg viewBox="0 0 240 240" className="mx-auto mt-3 w-full max-w-[260px]" role="img" aria-label="Illustrative dimension radar chart with no real data">
               <g fill="none" stroke="#e2e7ef" strokeWidth="1">
                 {rings.map((r) => (
-                  <polygon key={r} points={polygon(Array(6).fill(r))} />
+                  <polygon key={r} points={polygon(Array(n).fill(r))} />
                 ))}
                 {AXES.map((_, i) => {
-                  const [x, y] = point(i, 1);
+                  const [x, y] = point(i, n, 1);
                   return <line key={i} x1={CX} y1={CY} x2={x} y2={y} />;
                 })}
               </g>
               <polygon points={polygon(DESIRED)} fill="#059669" fillOpacity="0.08" stroke="#059669" strokeWidth="2" strokeDasharray="5 4" />
               <polygon points={polygon(CURRENT)} fill="#18335f" fillOpacity="0.16" stroke="#18335f" strokeWidth="2" />
               {CURRENT.map((v, i) => {
-                const [x, y] = point(i, v);
+                const [x, y] = point(i, n, v);
                 return <circle key={i} cx={x} cy={y} r="3" fill="#18335f" />;
               })}
               {AXES.map((label, i) => {
-                const [x, y] = point(i, 1.17);
+                const [x, y] = point(i, n, 1.17);
                 return (
                   <text key={label} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="600" fill="#5a6778">
                     {label}

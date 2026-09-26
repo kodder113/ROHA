@@ -35,7 +35,7 @@ const V2_ITEMS: Record<string, string> = {
   EE2: "The contributions I make are acknowledged here.",
   EE3: "This organization invests in developing my skills.",
   EE4: "I feel committed to helping this organization succeed.",
-  EE5: "I can choose my own approach to getting my work done.",
+  EE5: "I have appropriate freedom to decide how to accomplish my work.",
   OE1: "Our work processes let us get things done without unnecessary steps.",
   OE2: "The tools and technology available to me are well suited to my work.",
   OE3: "Departments work well together when a task involves more than one of them.",
@@ -43,7 +43,7 @@ const V2_ITEMS: Record<string, string> = {
   OE5: "The procedures I am expected to follow in my work are clear.",
   SI1: "I understand the organization's most important goals.",
   SI2: "My daily work helps the organization reach its goals.",
-  SI3: "This organization adjusts quickly when conditions change.",
+  SI3: "This organization adapts effectively when circumstances change.",
   SI4: "New ideas are welcomed here, even when they challenge established ways of working.",
   SI5: "Employees receive the support they need to try out their ideas for improvement.",
 };
@@ -126,12 +126,17 @@ describe.skipIf(!available)("Assessment Version 2 draft (five dimensions × five
     expect(new Set(rows.map((r) => r.prompt)).size).toBe(25);
   });
 
-  it("drafts scoring rules v2 (threshold 13 of 25) and AI instructions v2 without activating them", async () => {
+  it("drafts scoring rules v2 (at least 4 valid per dimension) and AI instructions v2 without activating them", async () => {
     const rules = await db.client.query("select status, config from scoring_rule_versions where version_number = 2");
     expect(rules.rows[0].status).toBe("draft");
     const cfg = parseScoringConfig(rules.rows[0].config);
-    expect(cfg.minValidCurrentRatings).toBe(13);
-    expect({ ...cfg, minValidCurrentRatings: 12 }).toEqual(parseScoringConfig(v1Rules));
+    expect(cfg.minValidCurrentRatings).toBe(20);
+    expect(cfg.minValidCurrentPerDimension).toBe(4);
+    expect(cfg.assessmentVersion).toBe(2);
+    const { minValidCurrentPerDimension: _p, assessmentVersion: _a, ...rest } = cfg;
+    void _p;
+    void _a;
+    expect({ ...rest, minValidCurrentRatings: 12 }).toEqual(parseScoringConfig(v1Rules));
     const ai = await db.client.query("select status, system_prompt from ai_report_instructions where version_number = 2");
     expect(ai.rows[0].status).toBe("draft");
     expect(ai.rows[0].system_prompt).toContain("version 2 has five dimensions of five items");

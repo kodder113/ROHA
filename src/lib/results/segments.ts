@@ -103,7 +103,9 @@ export function analyzeSegments(
       if (!d.visible) {
         return { key: d.key, label: d.label, n: null, visible: false, reason: d.reason, result: null };
       }
-      const result = scoreAssessment({ ...ctx, responses: byKey.get(d.key) ?? [] });
+      // Exclusion reasons are reported organization-wide only, never per segment.
+      const { exclusions: _exclusions, ...result } = scoreAssessment({ ...ctx, responses: byKey.get(d.key) ?? [] });
+      void _exclusions;
       return { key: d.key, label: d.label, n: d.n, visible: true, reason: null, result: redactSmallCells(result, k) };
     });
 

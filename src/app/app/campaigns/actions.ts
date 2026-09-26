@@ -11,6 +11,7 @@ import { logAppError, logAudit } from "@/lib/audit";
 import { accessCode, normalizeAccessCode, participationHash } from "@/lib/security/tokens";
 import { finalizeCampaign } from "@/lib/results/service";
 import { getCampaign } from "@/lib/campaigns/queries";
+import { pickRulesForAssessment } from "@/lib/scoring/pairing";
 
 export interface CampaignFormState {
   error?: string;
@@ -94,11 +95,14 @@ function friendly(err: unknown): string {
 
 async function latestPublished() {
   const admin = createAdminClient();
-  const [{ data: version }, { data: rules }] = await Promise.all([
-    admin.from("assessment_versions").select("id").eq("status", "published").order("version_number", { ascending: false }).limit(1).single(),
-    admin.from("scoring_rule_versions").select("id").eq("status", "published").order("version_number", { ascending: false }).limit(1).single(),
+  const [{ data: version }, { data: rulesRows }] = await Promise.all([
+    admin.from("assessment_versions").select("id, version_number").eq("status", "published").order("version_number", { ascending: false }).limit(1).single(),
+    admin.from("scoring_rule_versions").select("id, version_number, config").eq("status", "published"),
   ]);
-  if (!version || !rules) throw new Error("No published assessment version or scoring rules are available.");
+  if (!version) throw new Error("No published assessment version is available.");
+  // Scoring rules are paired with the assessment version they were designed for.
+  const rules = pickRulesForAssessment(version.version_number, rulesRows ?? []);
+  if (!rules) throw new Error(`No published scoring rules are available for assessment version ${version.version_number}.`);
   return { versionId: version.id, rulesId: rules.id };
 }
 

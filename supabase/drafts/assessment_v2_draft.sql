@@ -2,25 +2,29 @@
 -- ROHA Assessment Version 2 — FIVE-DIMENSION DRAFT FOR OWNER REVIEW
 -- ============================================================================
 --
--- STATUS: PROPOSED. NOT APPROVED. NOT PUBLISHED.
+-- STATUS: FRAMEWORK APPROVED BY THE OWNER (September 26, 2026) SUBJECT TO
+-- LICENSED IP SCREENING. NOT PUBLISHED. DO NOT RUN IN PRODUCTION UNTIL THE
+-- PUBLICATION READINESS BLOCKERS ARE CLEARED
+-- (docs/assessment-v2/10-publication-readiness-report.md).
 --
 -- Stored OUTSIDE supabase/migrations so it is never applied automatically.
 -- Supersedes the earlier six-by-four Version 2 draft (see git history).
 --
 -- When run (only after Rodrik Consulting approval) it creates, all as DRAFTS:
 --   * assessment version 2 — five dimensions × five items (25 items);
---   * scoring rules version 2 — v1 rules with the validity threshold
---     adjusted for 25 items (13 numeric current ratings);
+--   * scoring rules version 2 — v1 formula and weights unchanged; a respondent
+--     is included only with at least 4 numeric current-state ratings in EVERY
+--     dimension (N/A and blanks do not count), i.e. at least 20 of 25;
 --   * AI reporting instructions version 2 — version-neutral wording.
 --
 -- It does NOT publish or activate anything, and it does not touch version 1,
 -- scoring rules v1, AI instructions v1, campaigns, responses or results.
 -- Drafts are invisible to organizations and cannot be used by campaigns.
 --
--- NOTE: Version 2 cannot be published until the engineering changes listed in
--- docs/assessment-v2/08-engineering-changes-before-publication.md are made.
--- The super-admin publication checklist currently requires 6 × 4 and will
--- block publication until then.
+-- The application supports five-by-five versions (see
+-- docs/assessment-v2/08-engineering-changes-before-publication.md). The
+-- super-admin checklist requires published scoring rules for version 2
+-- before assessment version 2 can be published: publish rules v2 first.
 --
 -- Safe to run once: aborts if any version 2 already exists.
 -- Tested by src/test/assessment-v2-draft.integration.test.ts.
@@ -55,7 +59,8 @@ begin
     'Desired state — how true this should be in the future',
     'Owner-directed restructure (September 26, 2026): five dimensions × five items (25 items). '
     || 'Strategic Alignment and Innovation and Adaptability are replaced by one integrated dimension, Strategic Alignment & Innovation. '
-    || 'Of the 24 v1 items: 10 retained, 12 revised, 2 retired (SA4, IA3); 3 new items (OC5, EE5, OE5). '
+    || 'Of the 24 v1 items: 11 retained, 11 revised, 2 retired (SA4, IA3); 3 new items (OC5, EE5, OE5). '
+    || 'Owner final adjustments: EE5 and SI3 wording; per-dimension inclusion rule (4 of 5 per dimension). '
     || 'Rating labels reworded for first-person items. See docs/assessment-v2/. '
     || 'Requires licensed-instrument screening and owner approval before publication.'
   )
@@ -115,7 +120,7 @@ begin
     (v_v2, d_ee, 'EE4', 'Commitment to the organization',
      'I feel committed to helping this organization succeed.', false, 4),
     (v_v2, d_ee, 'EE5', 'Autonomy in how work is done',
-     'I can choose my own approach to getting my work done.', false, 5),
+     'I have appropriate freedom to decide how to accomplish my work.', false, 5),
     -- Operational Effectiveness
     (v_v2, d_oe, 'OE1', 'Process efficiency',
      'Our work processes let us get things done without unnecessary steps.', false, 1),
@@ -133,7 +138,7 @@ begin
     (v_v2, d_si, 'SI2', 'Alignment of daily work with goals',
      'My daily work helps the organization reach its goals.', false, 2),
     (v_v2, d_si, 'SI3', 'Responsiveness to change',
-     'This organization adjusts quickly when conditions change.', true, 3),
+     'This organization adapts effectively when circumstances change.', true, 3),
     (v_v2, d_si, 'SI4', 'Openness to new ideas',
      'New ideas are welcomed here, even when they challenge established ways of working.', false, 4),
     (v_v2, d_si, 'SI5', 'Support for employee-driven innovation',
@@ -144,14 +149,17 @@ begin
   select v_v2, key, prompt, sort_order from public.qualitative_questions where version_id = v_v1;
 
   -- --------------------------------------------------------------------------
-  -- Scoring rules version 2 (draft): identical to v1 except the validity
-  -- threshold, which keeps "at least half of the current-state ratings".
+  -- Scoring rules version 2 (draft): identical formula and weights to v1.
+  -- Inclusion rule changes to "at least 4 valid current-state ratings in every
+  -- dimension" (owner decision); assessmentVersion pairs the rules with v2.
   -- --------------------------------------------------------------------------
   insert into public.scoring_rule_versions (version_number, name, status, config, notes)
   select 2, 'ROHA Scoring Rules v2 (draft for five-dimension assessment)', 'draft',
-         config || '{"minValidCurrentRatings": 13}'::jsonb,
-         'Draft for assessment version 2 (5 dimensions × 5 items). Unchanged from v1 except minValidCurrentRatings 12 → 13 '
-         || '(at least half of 25 current-state ratings). Equal item weights within dimensions; equal dimension weights (20% each). '
+         config || '{"minValidCurrentRatings": 20, "minValidCurrentPerDimension": 4, "assessmentVersion": 2}'::jsonb,
+         'Draft for assessment version 2 (5 dimensions × 5 items). Scoring formula unchanged from v1. Inclusion rule: a respondent '
+         || 'is included only with at least 4 numeric current-state ratings in every dimension (N/A and blank answers do not count), '
+         || 'hence at least 20 of 25 overall; excluded respondents are reported by reason. '
+         || 'Equal item weights within dimensions; equal dimension weights (20% each). '
          || 'Normalized score = ((rating − 1) / 4) × 100; gap = desired − current; N/A excluded. See docs/assessment-v2/05-scoring-specification.md.'
   from public.scoring_rule_versions where version_number = 1;
 

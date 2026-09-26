@@ -14,7 +14,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "The ROHA Framework",
   description:
-    "The ROHA Organizational Health Framework: six dimensions, the complete set of assessment statements, the rating scale, and how results are interpreted.",
+    "The ROHA Organizational Health Framework: its dimensions, the complete set of assessment statements, the rating scale, and how results are interpreted.",
 };
 
 const SCALE = [
@@ -196,7 +196,7 @@ export default async function FrameworkPage() {
               and we will be glad to share it.
             </Alert>
             <div className="mt-10">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">The six dimensions</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">The dimensions</p>
               <ol className="mt-4 grid gap-3 sm:grid-cols-2">
                 {FALLBACK_DIMENSION_NAMES.map((name, i) => (
                   <li key={name} className="flex items-center gap-3 rounded-xl border border-line bg-white p-4 shadow-card">
@@ -261,7 +261,7 @@ export default async function FrameworkPage() {
 
       <CtaBand
         title="See your organization through this framework."
-        description="Launch a free ROHA Discover assessment and receive a clear, six-dimension view of how your people experience the organization today—and where they believe it should go."
+        description="Launch a free ROHA Discover assessment and receive a clear, dimension-by-dimension view of how your people experience the organization today—and where they believe it should go."
       />
     </>
   );

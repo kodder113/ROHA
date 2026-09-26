@@ -41,7 +41,7 @@ const steps = [
   {
     Icon: ListChecks,
     title: "Employees share their perspective",
-    body: "Each participant rates 24 statements twice—once for the current state and once for the desired state—and may answer three optional open-ended questions.",
+    body: "Each participant rates every assessment statement twice—once for the current state and once for the desired state—and may answer three optional open-ended questions.",
   },
   {
     Icon: LockKeyhole,

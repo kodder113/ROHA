@@ -21,6 +21,14 @@ export interface ScoringConfig {
   dimensionWeights: Record<string, number>;
   /** A response is valid when it has at least this many numeric current-state ratings. */
   minValidCurrentRatings: number;
+  /**
+   * Optional (scoring rules v2+): a response is included only if EVERY
+   * dimension has at least this many numeric current-state ratings.
+   * N/A and missing ratings do not count toward the threshold.
+   */
+  minValidCurrentPerDimension?: number;
+  /** Optional: the assessment version these rules were designed for (absent = version 1). */
+  assessmentVersion?: number;
   /** Minimum valid respondents before any group's results are shown. */
   minGroupSize: number;
   gapThresholds: { notable: number; substantial: number };
@@ -132,6 +140,18 @@ export interface AssessmentResult {
   validResponses: number;
   excludedResponses: number;
   invalidRatings: number;
+  /**
+   * Why responses were excluded (present from engine 1.1). `belowDimensionThreshold`
+   * counts, per dimension key, excluded responses that fell short in that dimension
+   * (a response can fall short in several). `withNotApplicable` counts excluded
+   * responses in which at least one shortfall involved N/A answers.
+   */
+  exclusions?: {
+    rule: string;
+    belowOverallThreshold: number;
+    belowDimensionThreshold: Record<string, number>;
+    withNotApplicable: number;
+  };
   overall: OverallResult;
   dimensions: DimensionResult[];
   questions: QuestionResult[];

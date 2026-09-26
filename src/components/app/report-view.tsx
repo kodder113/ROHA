@@ -1,6 +1,6 @@
 import { AlertTriangle, FlaskConical, Lightbulb, Search } from "lucide-react";
 import type { AnalysisSection, ExecutiveReport, ReportInputSnapshot } from "@/lib/ai/report-schema";
-import { ANALYSIS_SECTIONS } from "@/lib/ai/report-schema";
+import { analysisSectionsFor } from "@/lib/ai/report-schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { StatTile } from "@/components/ui/misc";
@@ -129,14 +129,27 @@ export function ReportView({ report, snapshot }: { report: ExecutiveReport; snap
         </Section>
       </div>
 
-      {ANALYSIS_SECTIONS.map((sec) => {
+      {analysisSectionsFor(snapshot.dimensions.map((d) => d.key)).map((sec) => {
         const d = dim(sec.dimension);
+        const items = [...(sec.itemKeys ?? []), ...(sec.contextItemKeys ?? [])]
+          .map((k) => snapshot.items.find((i) => i.key === k))
+          .filter((i): i is ReportInputSnapshot["items"][number] => !!i);
         return (
           <Section key={sec.key} letter={sec.letter} title={sec.title}>
             {d ? (
               <p className="text-sm text-muted">
                 {d.name}: current {formatScore(d.current)} · desired {formatScore(d.desired)} · gap {formatGap(d.gap)} · n = {d.respondents}
               </p>
+            ) : null}
+            {sec.scope ? (
+              <div className="rounded-lg border border-line bg-navy-50/40 p-3 text-sm text-navy-800">
+                <p>{sec.scope}</p>
+                {items.length ? (
+                  <p className="mt-1 text-muted">
+                    {items.map((i) => `${i.key} ${formatScore(i.current)} (gap ${formatGap(i.gap)})`).join(" · ")}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
             <Analysis section={report[sec.key as keyof ExecutiveReport] as AnalysisSection} />
           </Section>

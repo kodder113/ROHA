@@ -2,7 +2,7 @@ import "server-only";
 import type { Json, Tables } from "@/lib/database.types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseScoringConfig } from "@/lib/scoring/config";
-import { ENGINE_VERSION } from "@/lib/scoring/engine";
+import { ENGINE_VERSION, engineMajor } from "@/lib/scoring/engine";
 import type { DimensionDef, QuestionDef, ScoringConfig } from "@/lib/scoring/types";
 import { scrubPII, seededShuffle } from "@/lib/privacy/redact";
 import { toDimensionDefs, toProfiledResponses, toQuestionDefs, type ResponseItemRow, type ResponseRow } from "./mapping";
@@ -209,7 +209,9 @@ async function getOrComputeResults(campaign: Campaign, force = false): Promise<R
       .eq("campaign_id", campaign.id)
       .eq("scoring_rule_version_id", campaign.scoring_rule_version_id)
       .maybeSingle();
-    if (data && data.engine_version === ENGINE_VERSION) return data.payload as unknown as ResultsPayload;
+    // Frozen results are reused for any engine release with the same major version,
+    // so historical results are never recomputed by backward-compatible engine updates.
+    if (data && engineMajor(data.engine_version) === engineMajor(ENGINE_VERSION)) return data.payload as unknown as ResultsPayload;
     if (data) {
       // Raw responses may have been purged under the retention policy; keep the frozen aggregates.
       const { count } = await admin.from("responses").select("id", { count: "exact", head: true }).eq("campaign_id", campaign.id);
@@ -277,6 +279,8 @@ export async function getHistoricalTrend(orgId: string): Promise<TrendPoint[]> {
       campaignId: c.id,
       name: c.name,
       closedAt: c.closed_at ?? c.closes_at,
+      assessmentVersion: view.payload.assessmentVersion,
+      dimensionLabels: Object.fromEntries(o.dimensions.map((d) => [d.key, { code: d.code, name: d.name }])),
       validResponses: o.validResponses,
       currentIndex: o.overall.currentIndex,
       desiredIndex: o.overall.desiredIndex,

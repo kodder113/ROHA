@@ -39,6 +39,14 @@ export interface TrendPoint {
   campaignId: string;
   name: string;
   closedAt: string;
+  /**
+   * Assessment version the campaign used. Points from different versions measure
+   * different constructs with different items and inclusion rules, so they are
+   * never joined by a line and no change is calculated across versions.
+   */
+  assessmentVersion: number;
+  /** Dimension labels for this campaign's own assessment version. */
+  dimensionLabels: Record<string, { code: string; name: string }>;
   validResponses: number;
   currentIndex: number | null;
   desiredIndex: number | null;
