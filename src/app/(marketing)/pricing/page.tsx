@@ -36,17 +36,23 @@ const limitRows: { label: string; value: (p: PublicPlan) => string }[] = [
   { label: "Administrators", value: (p) => formatLimit(p.maxAdmins, p) },
 ];
 
-const faqs: { q: string; a: React.ReactNode }[] = [
+/** `paid`: about payments or prices, hidden while the pilot is free. */
+const faqs: { q: string; a: React.ReactNode; paid?: boolean }[] = [
+  {
+    q: "Is ROHA really free during the pilot?",
+    a: `Yes. While ROHA is in its pilot, every plan is free and no payment card is required. Register your organization, then contact Dr. Rodriguez at ${BRAND.pilot.contactEmail} to unlock full access, including the AI executive report and PDF.`,
+    paid: false,
+  },
   {
     q: "Do I need a payment card to start with ROHA Discover?",
     a: "No. ROHA Discover is free and does not require a payment card. You can register your organization, run an assessment campaign within the plan's limits, and review your results without entering any billing information.",
   },
   {
-    q: "How are payments processed?",
+    q: "How are payments processed?", paid: true,
     a: "Paid plans are processed securely by Stripe, a PCI DSS–certified payment provider. Card details are entered directly with Stripe; ROHA never receives or stores your full card number.",
   },
   {
-    q: "What is the difference between Professional and Enterprise?",
+    q: "What is the difference between Professional and Enterprise?", paid: true,
     a: "ROHA Professional is a one-time purchase covering a single comprehensive assessment with full reporting. ROHA Enterprise is a monthly subscription for organizations that want to assess regularly, compare results over time, and involve more administrators.",
   },
   {
@@ -54,11 +60,11 @@ const faqs: { q: string; a: React.ReactNode }[] = [
     a: "Each campaign's response limit is set by your plan when the campaign launches. Once the limit is reached, the survey stops accepting new submissions; responses already received are unaffected and results are calculated as usual. If you expect more participants, choose a plan with a higher limit before launching.",
   },
   {
-    q: "Can we upgrade later?",
+    q: "Can we upgrade later?", paid: true,
     a: "Yes. You can purchase a paid plan at any time after registering. Your existing campaigns and results remain available.",
   },
   {
-    q: "Can I cancel an Enterprise subscription?",
+    q: "Can I cancel an Enterprise subscription?", paid: true,
     a: "Yes. Enterprise subscriptions can be canceled at any time and remain active until the end of the current billing period. Please review the Terms of Service for full details.",
   },
   {
@@ -75,7 +81,7 @@ const faqs: { q: string; a: React.ReactNode }[] = [
     ),
   },
   {
-    q: "Are prices shown in U.S. dollars?",
+    q: "Are prices shown in U.S. dollars?", paid: true,
     a: "Yes. Prices are listed in U.S. dollars and do not include taxes that may apply in your jurisdiction.",
   },
 ];
@@ -113,7 +119,9 @@ export default async function PricingPage() {
           ))}
         </div>
         <p className="mt-8 text-center text-sm text-muted">
-          Prices in USD. Payments are processed securely by Stripe. No payment card is required for ROHA Discover.
+          {BRAND.pilot.active
+            ? `${BRAND.pilot.banner} No payment card is required. ${BRAND.pilot.detail}`
+            : "Prices in USD. Payments are processed securely by Stripe. No payment card is required for ROHA Discover."}
         </p>
       </Section>
 
@@ -211,7 +219,7 @@ export default async function PricingPage() {
             }
           />
           <div className="divide-y divide-line border-y border-line">
-            {faqs.map((f) => (
+            {faqs.filter((f) => (BRAND.pilot.active ? !f.paid : f.paid !== false)).map((f) => (
               <details key={f.q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-6 rounded-md [&::-webkit-details-marker]:hidden">
                   <span className="font-sans text-base font-semibold text-navy-900">{f.q}</span>

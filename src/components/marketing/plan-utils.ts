@@ -1,7 +1,12 @@
 import type { PublicPlan } from "@/lib/content/public";
 import { formatCurrency } from "@/lib/utils";
+import { BRAND } from "@/lib/brand";
 
 export function planPrice(plan: PublicPlan): { amount: string; suffix: string | null } {
+  if (BRAND.pilot.active) {
+    // Prices stay hidden until Rodrik Consulting is ready to charge.
+    return plan.billingInterval === "custom" ? { amount: "Custom", suffix: "consulting engagement" } : { amount: "Free", suffix: "during the pilot" };
+  }
   switch (plan.billingInterval) {
     case "free":
       return { amount: "Free", suffix: null };
@@ -20,6 +25,10 @@ export function planCta(plan: PublicPlan): { href: string; label: string } {
   }
   if (plan.billingInterval === "free") {
     return { href: "/get-started", label: "Start free" };
+  }
+  if (BRAND.pilot.active) {
+    // No checkout during the pilot: everyone signs up free; full access is granted by Rodrik Consulting.
+    return { href: "/get-started", label: "Join the pilot" };
   }
   return { href: `/get-started?plan=${encodeURIComponent(plan.key)}`, label: "Get started" };
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { getCurrentUser, getMemberships } from "@/lib/auth/session";
+import { BRAND } from "@/lib/brand";
 import { OrganizationOnlyForm, RegistrationForm } from "../forms";
 
 export const metadata: Metadata = {
@@ -40,8 +41,17 @@ export default async function GetStartedPage({ searchParams }: { searchParams: P
       <h1 className="mt-2 text-3xl font-semibold text-navy-900">Register your organization</h1>
       <p className="mt-2 text-muted">
         Create a private, secure workspace for your organization. Every account starts on ROHA Discover at no cost
-        {plan && PLAN_NAMES[plan] ? <> — you can complete your {PLAN_NAMES[plan]} purchase right after verifying your email</> : null}.
+        {!BRAND.pilot.active && plan && PLAN_NAMES[plan] ? <> — you can complete your {PLAN_NAMES[plan]} purchase right after verifying your email</> : null}.
       </p>
+      {BRAND.pilot.active ? (
+        <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <span className="font-semibold">{BRAND.pilot.banner}</span> After you verify your email, contact Dr. Rodriguez at{" "}
+          <a href={`mailto:${BRAND.pilot.contactEmail}`} className="font-medium underline underline-offset-4">
+            {BRAND.pilot.contactEmail}
+          </a>{" "}
+          to unlock full access.
+        </p>
+      ) : null}
       <ul className="mt-5 grid gap-2 text-sm text-navy-800 sm:grid-cols-3">
         {["No credit card required", "Employees never create accounts", "Results protected by privacy thresholds"].map((t) => (
           <li key={t} className="flex items-center gap-2">

@@ -6,6 +6,16 @@ export const BRAND = {
   secondaryTagline: "Powered by AI. Grounded in Strategic Leadership.",
   company: "Rodrik Consulting LLC",
   companyUrl: "https://rodrikconsulting.com",
+  /**
+   * Pilot mode: prices are hidden everywhere and a "free during the pilot"
+   * banner is shown. Set `active` to false (and redeploy) when ready to charge.
+   */
+  pilot: {
+    active: true,
+    banner: "ROHA is free during our pilot.",
+    detail: "Sign up, then contact Dr. Rodriguez to unlock full access.",
+    contactEmail: "oscar@rodrikconsulting.com",
+  },
   /** Production address of the ROHA application. */
   appUrl: "https://roha.droscarrodriguez.com",
   founder: "Dr. Oscar A. Rodriguez, DSL",

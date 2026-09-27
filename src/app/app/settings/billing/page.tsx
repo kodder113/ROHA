@@ -11,6 +11,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { BillingPortalButton, CheckoutButton } from "@/components/app/settings-forms";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = { title: "Plan & billing" };
 
@@ -84,9 +85,15 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                   {current ? <Badge tone="navy">Current</Badge> : null}
                 </div>
                 <p className="mt-2 font-serif text-3xl font-semibold text-navy-900">
-                  {p.billingInterval === "custom" ? "Custom" : p.priceCents === 0 ? "Free" : formatCurrency(p.priceCents, p.currency)}
-                  {p.billingInterval === "month" ? <span className="text-base font-normal text-muted">/month</span> : null}
-                  {p.billingInterval === "one_time" ? <span className="text-base font-normal text-muted"> per assessment</span> : null}
+                  {BRAND.pilot.active ? (
+                    p.billingInterval === "custom" ? "Custom" : <>Free<span className="text-base font-normal text-muted"> during the pilot</span></>
+                  ) : (
+                    <>
+                      {p.billingInterval === "custom" ? "Custom" : p.priceCents === 0 ? "Free" : formatCurrency(p.priceCents, p.currency)}
+                      {p.billingInterval === "month" ? <span className="text-base font-normal text-muted">/month</span> : null}
+                      {p.billingInterval === "one_time" ? <span className="text-base font-normal text-muted"> per assessment</span> : null}
+                    </>
+                  )}
                 </p>
                 <ul className="mt-4 flex-1 space-y-2 text-sm text-navy-800">
                   {p.bullets.map((b) => (
@@ -97,7 +104,13 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
                   ))}
                 </ul>
                 <div className="mt-6">
-                  {purchasable && isOwner ? (
+                  {purchasable && BRAND.pilot.active ? (
+                    current ? null : (
+                      <ButtonLink href={`mailto:${BRAND.pilot.contactEmail}?subject=${encodeURIComponent(`ROHA pilot access: ${ctx.org.name}`)}`} variant="outline" className="w-full">
+                        Request pilot access
+                      </ButtonLink>
+                    )
+                  ) : purchasable && isOwner ? (
                     <CheckoutButton
                       orgId={ctx.org.id}
                       planKey={p.key as "professional" | "enterprise"}
@@ -117,7 +130,15 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           );
         })}
       </div>
-      {!stripeReady ? (
+      {BRAND.pilot.active ? (
+        <Alert tone="info">
+          {BRAND.pilot.banner} {BRAND.pilot.detail} Email{" "}
+          <a className="font-medium underline" href={`mailto:${BRAND.pilot.contactEmail}`}>
+            {BRAND.pilot.contactEmail}
+          </a>
+          .
+        </Alert>
+      ) : !stripeReady ? (
         <Alert tone="info">
           Online payments are not enabled in this environment. Free ROHA Discover assessments work without payment configuration; contact Rodrik
           Consulting to arrange a paid or pilot plan.
