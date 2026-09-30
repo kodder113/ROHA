@@ -29,10 +29,10 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rodrik Apps — Enterprise Solutions, Entertainment &amp; Simulation | Rodrik Consulting</title>
-  <meta name="description" content="Rodrik Apps, from Rodrik Consulting: FLAME for AI governance, ROHA for organizational health and RodIQ for personalized SAT and ACT preparation; plus Blocky Market and Fantasy Coach Live, entertainment apps built on real-time data and analytics." />
+  <meta name="description" content="Rodrik Apps, from Rodrik Consulting: ScanPay for QR payments, FLAME for AI governance, ROHA for organizational health and RodIQ for personalized SAT and ACT preparation; plus Blocky Market and Fantasy Coach Live, entertainment apps built on real-time data and analytics." />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Rodrik Apps — FLAME, ROHA, RodIQ, Blocky Market &amp; Fantasy Coach Live" />
-  <meta property="og:description" content="Enterprise solutions for AI governance, organizational health and SAT and ACT prep, and entertainment apps built on real-time data and simulation. From Rodrik Consulting." />
+  <meta property="og:title" content="Rodrik Apps — ScanPay, FLAME, ROHA, RodIQ, Blocky Market &amp; Fantasy Coach Live" />
+  <meta property="og:description" content="Enterprise solutions for QR payments, AI governance, organizational health and SAT and ACT prep, and entertainment apps built on real-time data and simulation. From Rodrik Consulting." />
   <meta property="og:url" content="https://apps.rodrikconsulting.com/" />
   <meta property="og:image" content="https://apps.rodrikconsulting.com/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -195,6 +195,16 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
     .tech span{display:inline-block;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;margin:0 4px 5px 0;
       background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);}
 
+    /* ScanPay: QR payments, green brand with a yellow pay button; the product mockup on its own dark field */
+    .scanpay .app-visual{background:#08090d url(scanpay.webp) center / contain no-repeat;}
+    .scanpay .app-tag{background:rgba(34,195,122,.15);color:#5fe0a4;}
+    .scanpay h3 em{font-style:normal;color:#22c37a;}
+    .scanpay li{--dot:#22c37a;}
+    .scanpay .btn:not(.btn-outline){background:#F2DC4A;color:#141204;}
+    .scanpay .btn-outline{border-color:#22c37a;color:#5fe0a4;}
+    .scanpay .btn-outline:hover{background:rgba(34,195,122,.12);color:#fff;border-color:#22c37a;}
+    .scanpay .status-pill{--pill:rgba(242,220,74,.6);color:#fdf6c3;}
+
     /* ROHA: organizational analytics -- a health index, five dimensions, current vs desired */
     .roha .app-visual{background:radial-gradient(circle at 70% 20%, rgba(52,198,142,.22), transparent 58%), linear-gradient(180deg,#0c1b35,#070f1f);}
     .roha .app-tag{background:rgba(52,198,142,.15);color:#6fe0b2;}
@@ -346,7 +356,7 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
     <div>
       <p class="kicker" data-en="Rodrik Apps" data-es="Rodrik Apps">Rodrik Apps</p>
       <h1 data-en="Software built on the way we think about organizations" data-es="Software construido sobre nuestra forma de entender las organizaciones">Software built on the way we think about organizations</h1>
-      <p class="lede"><span data-en="The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands." data-es="El mismo enfoque en claridad, evidencia e impacto medible que guía nuestra consultoría. Soluciones empresariales para la gobernanza de la IA, la salud organizacional y la preparación para el SAT y el ACT. Y apps de entretenimiento que ponen datos en tiempo real, analítica y simulación en manos de las personas.">The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands.</span></p>
+      <p class="lede"><span data-en="The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for QR payments, AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands." data-es="El mismo enfoque en claridad, evidencia e impacto medible que guía nuestra consultoría. Soluciones empresariales para pagos con QR, la gobernanza de la IA, la salud organizacional y la preparación para el SAT y el ACT. Y apps de entretenimiento que ponen datos en tiempo real, analítica y simulación en manos de las personas.">The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for QR payments, AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands.</span></p>
       <div class="cta">
         <a class="btn" href="#enterprise" data-en="Enterprise solutions" data-es="Soluciones empresariales">Enterprise solutions</a>
         <a class="btn btn-outline" href="https://rodrikconsulting.com/#contact" data-en="Work with us" data-es="Trabaje con nosotros">Work with us</a>
@@ -365,12 +375,39 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
       <div>
         <p class="cat-eyebrow" data-en="01 · Enterprise Solutions" data-es="01 · Soluciones Empresariales">01 · Enterprise Solutions</p>
         <h2 data-en="Enterprise Solutions" data-es="Soluciones Empresariales">Enterprise Solutions</h2>
-        <p class="section-lede"><span data-en="Assessment, decision-support and learning platforms developed to support organizational performance, leadership, governance and student achievement." data-es="Plataformas de evaluación, apoyo a la toma de decisiones y aprendizaje desarrolladas para fortalecer el desempeño organizacional, el liderazgo, la gobernanza y el logro de los estudiantes.">Assessment, decision-support and learning platforms developed to support organizational performance, leadership, governance and student achievement.</span></p>
+        <p class="section-lede"><span data-en="Payment, assessment, decision-support and learning platforms developed to support organizational performance, leadership, governance and student achievement." data-es="Plataformas de pagos, evaluación, apoyo a la toma de decisiones y aprendizaje desarrolladas para fortalecer el desempeño organizacional, el liderazgo, la gobernanza y el logro de los estudiantes.">Payment, assessment, decision-support and learning platforms developed to support organizational performance, leadership, governance and student achievement.</span></p>
       </div>
     </div>
 
     <div class="feature-stack">
-      <article class="app-card feature flame reveal" id="flame">
+      <article class="app-card feature scanpay reveal" id="scanpay">
+        <div class="app-visual" role="img" aria-label="ScanPay dashboard and customer payment screen on two phones">
+          <span class="status-pill" data-en="Pilot · Coming soon" data-es="Piloto · Próximamente">Pilot · Coming soon</span>
+        </div>
+        <div class="app-body">
+          <span class="app-tag" data-en="Payments" data-es="Pagos">Payments</span>
+          <h3>Scan<em>Pay</em></h3>
+          <p class="full" data-en="QR payments for service businesses" data-es="Pagos con QR para negocios de servicios">QR payments for service businesses</p>
+          <p class="tagline" data-en="Get paid on the spot. Straight to your account." data-es="Cobre en el momento. Directo a su cuenta.">Get paid on the spot. Straight to your account.</p>
+          <p class="pitch"><span data-en="ScanPay turns any job, ticket or counter into a QR code. The customer scans it, adds a tip, and pays with Apple Pay, Google Pay, card, Zelle, Venmo or Cash App. The money goes straight to the business's own account, and the owner sees it come in live." data-es="ScanPay convierte cualquier trabajo, ticket o mostrador en un código QR. El cliente lo escanea, agrega una propina y paga con Apple Pay, Google Pay, tarjeta, Zelle, Venmo o Cash App. El dinero va directo a la cuenta del negocio, y el dueño lo ve llegar en vivo.">ScanPay turns any job, ticket or counter into a QR code. The customer scans it, adds a tip, and pays with Apple Pay, Google Pay, card, Zelle, Venmo or Cash App. The money goes straight to the business's own account, and the owner sees it come in live.</span></p>
+          <ul>
+            <li data-en="Scan-to-pay in seconds. The customer doesn't need an app or an account." data-es="Pague con un escaneo en segundos. El cliente no necesita una app ni una cuenta.">Scan-to-pay in seconds. The customer doesn't need an app or an account.</li>
+            <li data-en="Apple Pay and Google Pay, plus Zelle, Venmo and Cash App" data-es="Apple Pay y Google Pay, además de Zelle, Venmo y Cash App">Apple Pay and Google Pay, plus Zelle, Venmo and Cash App</li>
+            <li data-en="Tips built in: 10%, 15%, 20% or a custom amount" data-es="Propinas integradas: 10&nbsp;%, 15&nbsp;%, 20&nbsp;% o un monto personalizado">Tips built in: 10%, 15%, 20% or a custom amount</li>
+            <li data-en="Ticket QRs for invoices, with automatic reminders for unpaid ones" data-es="QR por ticket para facturas, con recordatorios automáticos de las pendientes">Ticket QRs for invoices, with automatic reminders for unpaid ones</li>
+            <li data-en="A QR for each tech, with owner, manager and staff roles" data-es="Un QR para cada técnico, con roles de dueño, gerente y personal">A QR for each tech, with owner, manager and staff roles</li>
+            <li data-en="An AI weekly report with sales, KPIs and top performers" data-es="Un informe semanal con IA con ventas, KPI y mejores desempeños">An AI weekly report with sales, KPIs and top performers</li>
+          </ul>
+          <p class="tech"><b data-en="At a glance" data-es="De un vistazo">At a glance</b><span>Stripe Connect</span><span data-en="Real-time payments" data-es="Pagos en tiempo real">Real-time payments</span><span data-en="Role-based teams" data-es="Equipos por roles">Role-based teams</span><span data-en="AI analytics" data-es="Analítica con IA">AI analytics</span><span data-en="English &amp; Spanish" data-es="Inglés y español">English &amp; Spanish</span></p>
+          <div class="app-actions">
+            <span class="btn" aria-disabled="true" data-en="Pilot program · Coming soon" data-es="Programa piloto · Próximamente">Pilot program · Coming soon</span>
+            <a class="btn btn-outline" href="https://rodrikconsulting.com/#contact" data-en="Ask about the pilot" data-es="Pregunte por el piloto">Ask about the pilot</a>
+          </div>
+          <p class="app-note"><span data-en="Plans from $19.99/month" data-es="Planes desde $19.99 al mes">Plans from $19.99/month</span></p>
+        </div>
+      </article>
+
+      <article class="app-card feature flip flame reveal" id="flame">
         <div class="app-visual" aria-hidden="true">
           <div class="duo">
             <div class="laptop"><div class="scr"></div><div class="base"></div></div>
@@ -393,7 +430,7 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
         </div>
       </article>
 
-      <article class="app-card feature flip roha reveal" id="roha">
+      <article class="app-card feature roha reveal" id="roha">
         <div class="app-visual" aria-hidden="true">
           <span class="status-pill" data-en="Pilot · Coming soon" data-es="Piloto · Próximamente">Pilot · Coming soon</span>
           <div class="duo roha-duo">
@@ -423,7 +460,7 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
         </div>
       </article>
 
-      <article class="app-card feature rodiq reveal" id="rodiq">
+      <article class="app-card feature flip rodiq reveal" id="rodiq">
         <div class="app-visual" aria-hidden="true">
           <div class="phone rp r1"></div>
           <div class="phone rp r2"></div>
