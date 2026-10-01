@@ -29,10 +29,10 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rodrik Apps — Enterprise Solutions, Entertainment &amp; Simulation | Rodrik Consulting</title>
-  <meta name="description" content="Rodrik Apps, from Rodrik Consulting: ScanPay for QR payments, FLAME for AI governance, ROHA for organizational health and RodIQ for personalized SAT and ACT preparation; plus Blocky Market and Fantasy Coach Live, entertainment apps built on real-time data and analytics." />
+  <meta name="description" content="Rodrik Apps, from Rodrik Consulting: ScanPay for small-business payments in Latin America and the US, FLAME for AI governance, ROHA for organizational health and RodIQ for personalized SAT and ACT preparation; plus Blocky Market and Fantasy Coach Live, entertainment apps built on real-time data and analytics." />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Rodrik Apps — ScanPay, FLAME, ROHA, RodIQ, Blocky Market &amp; Fantasy Coach Live" />
-  <meta property="og:description" content="Enterprise solutions for QR payments, AI governance, organizational health and SAT and ACT prep, and entertainment apps built on real-time data and simulation. From Rodrik Consulting." />
+  <meta property="og:description" content="Enterprise solutions for payments, AI governance, organizational health and SAT and ACT prep, and entertainment apps built on real-time data and simulation. From Rodrik Consulting." />
   <meta property="og:url" content="https://apps.rodrikconsulting.com/" />
   <meta property="og:image" content="https://apps.rodrikconsulting.com/og.png" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -195,7 +195,7 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
     .tech span{display:inline-block;font-size:12px;font-weight:600;padding:4px 9px;border-radius:999px;margin:0 4px 5px 0;
       background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--ink);}
 
-    /* ScanPay: QR payments, green brand with a yellow pay button; the product mockup on its own dark field */
+    /* ScanPay: payments for Latin America and the US, green brand with a yellow pay button; the product mockup on its own dark field */
     .scanpay .app-visual{background:#08090d url(scanpay.webp) center / contain no-repeat;}
     .scanpay .app-tag{background:rgba(34,195,122,.15);color:#5fe0a4;}
     .scanpay h3 em{font-style:normal;color:#22c37a;}
@@ -204,6 +204,17 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
     .scanpay .btn-outline{border-color:#22c37a;color:#5fe0a4;}
     .scanpay .btn-outline:hover{background:rgba(34,195,122,.12);color:#fff;border-color:#22c37a;}
     .scanpay .status-pill{--pill:rgba(242,220,74,.6);color:#fdf6c3;}
+    /* its copy runs long, so the mockup sits on top as a banner and the words use the full width below */
+    .app-card.feature.scanpay{grid-template-columns:1fr;}
+    .app-card.feature.scanpay .app-visual{min-height:0;height:500px;}
+    .app-card.feature.scanpay ul{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .scanpay .app-body > p:not(.tech):not(.app-note){max-width:880px;}
+    @media (max-width:1000px){.app-card.feature.scanpay ul{grid-template-columns:1fr 1fr;}}
+    @media (max-width:640px){.app-card.feature.scanpay .app-visual{height:300px;}.app-card.feature.scanpay ul{grid-template-columns:1fr;}}
+    .scanpay .lead-line{margin:0 0 10px;font-weight:700;color:#5fe0a4;}
+    .scanpay li strong,.scanpay .us-note strong,.scanpay .closing strong{color:#fff;}
+    .scanpay .us-note{margin:0 0 14px;padding:12px 14px;border-left:3px solid #F2DC4A;border-radius:10px;background:rgba(242,220,74,.06);color:var(--muted);font-size:14.5px;}
+    .scanpay .closing{margin:0 0 16px;color:var(--muted);}
 
     /* ROHA: organizational analytics -- a health index, five dimensions, current vs desired */
     .roha .app-visual{background:radial-gradient(circle at 70% 20%, rgba(52,198,142,.22), transparent 58%), linear-gradient(180deg,#0c1b35,#070f1f);}
@@ -356,7 +367,7 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
     <div>
       <p class="kicker" data-en="Rodrik Apps" data-es="Rodrik Apps">Rodrik Apps</p>
       <h1 data-en="Software built on the way we think about organizations" data-es="Software construido sobre nuestra forma de entender las organizaciones">Software built on the way we think about organizations</h1>
-      <p class="lede"><span data-en="The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for QR payments, AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands." data-es="El mismo enfoque en claridad, evidencia e impacto medible que guía nuestra consultoría. Soluciones empresariales para pagos con QR, la gobernanza de la IA, la salud organizacional y la preparación para el SAT y el ACT. Y apps de entretenimiento que ponen datos en tiempo real, analítica y simulación en manos de las personas.">The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for QR payments, AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands.</span></p>
+      <p class="lede"><span data-en="The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for payments, AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands." data-es="El mismo enfoque en claridad, evidencia e impacto medible que guía nuestra consultoría. Soluciones empresariales para pagos, la gobernanza de la IA, la salud organizacional y la preparación para el SAT y el ACT. Y apps de entretenimiento que ponen datos en tiempo real, analítica y simulación en manos de las personas.">The same focus on clarity, evidence and measurable impact that guides our consulting work. Enterprise solutions for payments, AI governance, organizational health and SAT and ACT preparation. And entertainment apps that put real-time data, analytics and simulation in people's hands.</span></p>
       <div class="cta">
         <a class="btn" href="#enterprise" data-en="Enterprise solutions" data-es="Soluciones empresariales">Enterprise solutions</a>
         <a class="btn btn-outline" href="https://rodrikconsulting.com/#contact" data-en="Work with us" data-es="Trabaje con nosotros">Work with us</a>
@@ -381,23 +392,27 @@ $ver = function ($f) use ($shared) { return @filemtime($shared . $f) ?: 1; };
 
     <div class="feature-stack">
       <article class="app-card feature scanpay reveal" id="scanpay">
-        <div class="app-visual" role="img" aria-label="ScanPay dashboard and customer payment screen on two phones">
+        <div class="app-visual" role="img" aria-label="ScanPay on two phones: the owner's dashboard, and a customer paying a repair shop by bank transfer with a tip">
           <span class="status-pill" data-en="Pilot · Coming soon" data-es="Piloto · Próximamente">Pilot · Coming soon</span>
         </div>
         <div class="app-body">
-          <span class="app-tag" data-en="Payments" data-es="Pagos">Payments</span>
+          <span class="app-tag" data-en="Payments · Latin America &amp; US" data-es="Pagos · Latinoamérica y EE.&nbsp;UU.">Payments · Latin America &amp; US</span>
           <h3>Scan<em>Pay</em></h3>
-          <p class="full" data-en="QR payments for service businesses" data-es="Pagos con QR para negocios de servicios">QR payments for service businesses</p>
-          <p class="tagline" data-en="Get paid on the spot. Straight to your account." data-es="Cobre en el momento. Directo a su cuenta.">Get paid on the spot. Straight to your account.</p>
-          <p class="pitch"><span data-en="ScanPay turns any job, ticket or counter into a QR code. The customer scans it, adds a tip, and pays with Apple Pay, Google Pay, card, Zelle, Venmo or Cash App. The money goes straight to the business's own account, and the owner sees it come in live." data-es="ScanPay convierte cualquier trabajo, ticket o mostrador en un código QR. El cliente lo escanea, agrega una propina y paga con Apple Pay, Google Pay, tarjeta, Zelle, Venmo o Cash App. El dinero va directo a la cuenta del negocio, y el dueño lo ve llegar en vivo.">ScanPay turns any job, ticket or counter into a QR code. The customer scans it, adds a tip, and pays with Apple Pay, Google Pay, card, Zelle, Venmo or Cash App. The money goes straight to the business's own account, and the owner sees it come in live.</span></p>
+          <p class="full" data-en="The payment system built for Latin America's small businesses." data-es="El sistema de pagos hecho para los pequeños negocios de Latinoamérica.">The payment system built for Latin America's small businesses.</p>
+          <p class="tagline" data-en="Get paid like a big company, using the bank account you already have." data-es="Cobre como una gran empresa, con la cuenta bancaria que ya tiene.">Get paid like a big company, using the bank account you already have.</p>
+          <p class="pitch"><span data-en="Across Latin America, millions of small businesses still rely on cash and manual bank transfers. The payment may arrive, but matching it to the customer, sale, employee and tip is still manual." data-es="En toda Latinoamérica, millones de pequeños negocios todavía dependen del efectivo y de transferencias bancarias manuales. El pago puede llegar, pero relacionarlo con el cliente, la venta, el empleado y la propina sigue siendo manual.">Across Latin America, millions of small businesses still rely on cash and manual bank transfers. The payment may arrive, but matching it to the customer, sale, employee and tip is still manual.</span></p>
+          <p class="lead-line" data-en="ScanPay turns a bank transfer into a trackable business payment." data-es="ScanPay convierte una transferencia bancaria en un pago de negocio rastreable.">ScanPay turns a bank transfer into a trackable business payment.</p>
+          <p class="pitch"><span data-en="Every sale gets its own payment QR. The customer scans it, pays through a supported bank or wallet, and the money goes directly to the business's account. ScanPay connects the payment to the sale, employee, tip and reporting, without holding the merchant's money." data-es="Cada venta tiene su propio QR de pago. El cliente lo escanea, paga desde un banco o billetera compatible, y el dinero va directo a la cuenta del negocio. ScanPay conecta el pago con la venta, el empleado, la propina y los reportes, sin retener el dinero del comercio.">Every sale gets its own payment QR. The customer scans it, pays through a supported bank or wallet, and the money goes directly to the business's account. ScanPay connects the payment to the sale, employee, tip and reporting, without holding the merchant's money.</span></p>
           <ul>
-            <li data-en="Scan-to-pay in seconds. The customer doesn't need an app or an account." data-es="Pague con un escaneo en segundos. El cliente no necesita una app ni una cuenta.">Scan-to-pay in seconds. The customer doesn't need an app or an account.</li>
-            <li data-en="Apple Pay and Google Pay, plus Zelle, Venmo and Cash App" data-es="Apple Pay y Google Pay, además de Zelle, Venmo y Cash App">Apple Pay and Google Pay, plus Zelle, Venmo and Cash App</li>
-            <li data-en="Tips built in: 10%, 15%, 20% or a custom amount" data-es="Propinas integradas: 10&nbsp;%, 15&nbsp;%, 20&nbsp;% o un monto personalizado">Tips built in: 10%, 15%, 20% or a custom amount</li>
-            <li data-en="Ticket QRs for invoices, with automatic reminders for unpaid ones" data-es="QR por ticket para facturas, con recordatorios automáticos de las pendientes">Ticket QRs for invoices, with automatic reminders for unpaid ones</li>
-            <li data-en="A QR for each tech, with owner, manager and staff roles" data-es="Un QR para cada técnico, con roles de dueño, gerente y personal">A QR for each tech, with owner, manager and staff roles</li>
-            <li data-en="An AI weekly report with sales, KPIs and top performers" data-es="Un informe semanal con IA con ventas, KPI y mejores desempeños">An AI weekly report with sales, KPIs and top performers</li>
+            <li><strong data-en="Direct to your local bank." data-es="Directo a su banco local.">Direct to your local bank.</strong> <span data-en="ScanPay never holds your funds." data-es="ScanPay nunca retiene sus fondos.">ScanPay never holds your funds.</span></li>
+            <li><strong data-en="Every payment matched to its sale." data-es="Cada pago vinculado a su venta.">Every payment matched to its sale.</strong> <span data-en="No more manually reconciling transfers and screenshots." data-es="Se acabó conciliar a mano transferencias y capturas de pantalla.">No more manually reconciling transfers and screenshots.</span></li>
+            <li><strong data-en="Tips built in." data-es="Propinas integradas.">Tips built in.</strong> <span data-en="Customers can add a tip before paying." data-es="Los clientes pueden agregar una propina antes de pagar.">Customers can add a tip before paying.</span></li>
+            <li><strong data-en="Your whole team on one system." data-es="Todo su equipo en un solo sistema.">Your whole team on one system.</strong> <span data-en="Track sales and tips by employee." data-es="Siga las ventas y las propinas por empleado.">Track sales and tips by employee.</span></li>
+            <li><strong data-en="Live reporting and AI insights." data-es="Reportes en vivo e información con IA.">Live reporting and AI insights.</strong> <span data-en="Ask questions about your business in plain language." data-es="Haga preguntas sobre su negocio en lenguaje sencillo.">Ask questions about your business in plain language.</span></li>
+            <li><strong data-en="Local currency, Spanish and English." data-es="Moneda local, español e inglés.">Local currency, Spanish and English.</strong> <span data-en="No customer app required." data-es="El cliente no necesita una app.">No customer app required.</span></li>
           </ul>
+          <p class="us-note"><strong data-en="Built for the US, too." data-es="También para Estados Unidos.">Built for the US, too.</strong> <span data-en="Support for Apple Pay, Google Pay, cards and popular US payment methods gives service businesses the same ScanPay workflow." data-es="Con Apple Pay, Google Pay, tarjetas y los métodos de pago más usados en EE.&nbsp;UU., los negocios de servicios tienen el mismo flujo de trabajo de ScanPay.">Support for Apple Pay, Google Pay, cards and popular US payment methods gives service businesses the same ScanPay workflow.</span></p>
+          <p class="closing"><strong data-en="Not another payment app." data-es="No es otra app de pagos.">Not another payment app.</strong> <span data-en="The payment infrastructure small businesses have been missing." data-es="Es la infraestructura de pagos que les faltaba a los pequeños negocios.">The payment infrastructure small businesses have been missing.</span></p>
           <p class="tech"><b data-en="At a glance" data-es="De un vistazo">At a glance</b><span>Stripe Connect</span><span data-en="Real-time payments" data-es="Pagos en tiempo real">Real-time payments</span><span data-en="Role-based teams" data-es="Equipos por roles">Role-based teams</span><span data-en="AI analytics" data-es="Analítica con IA">AI analytics</span><span data-en="English &amp; Spanish" data-es="Inglés y español">English &amp; Spanish</span></p>
           <div class="app-actions">
             <span class="btn" aria-disabled="true" data-en="Pilot program · Coming soon" data-es="Programa piloto · Próximamente">Pilot program · Coming soon</span>
